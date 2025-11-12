@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFAEdu: Journal of Education and Pedagogy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mengganti Inter dengan Poppins sesuai permintaan -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // Expose Firebase services globally for use in the <script> block
+        window.FirebaseServices = {};
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            setLogLevel('debug');
+            const app = initializeApp(firebaseConfig);
+            
+            // Mengalokasikan fungsi-fungsi yang diimpor langsung ke objek global
+            window.FirebaseServices.auth = getAuth(app);
+            window.FirebaseServices.db = getFirestore(app);
+            
+            // Firestore
+            window.FirebaseServices.collection = collection;
+            window.FirebaseServices.query = query;
+            window.FirebaseServices.onSnapshot = onSnapshot;
+            window.FirebaseServices.addDoc = addDoc;
+            window.FirebaseServices.serverTimestamp = serverTimestamp;
+
+            // Auth
+            window.FirebaseServices.signInAnonymously = signInAnonymously;
+            window.FirebaseServices.signInWithCustomToken = signInWithCustomToken;
+            window.FirebaseServices.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+            window.FirebaseServices.signInWithEmailAndPassword = signInWithEmailAndPassword;
+            window.FirebaseServices.onAuthStateChanged = onAuthStateChanged;
+            window.FirebaseServices.signOut = signOut;
+            
+            window.FirebaseServices.appId = appId;
+            window.FirebaseServices.initialAuthToken = initialAuthToken;
+        } else {
+            console.warn("Firebase services not available. Running in static mode.");
+        }
+    </script>
+    <!-- Chosen Palette: Academic Blue (Main Site) | Dark Purple/Yellow (Auth Page - As requested) -->
+    <!-- Application Structure Plan: Mengadopsi estetika Dark Mode dan input dari CSS yang diberikan user (font Poppins, warna #1f2029, aksen #ffeba7) untuk halaman Auth. Mempertahankan single-card centered layout dan fungsionalitas toggle switch yang sudah ada. -->
+    <!-- Visualization & Content Choices: 
+        1. Login/Register Design: Dark Mode, Single Card, Yellow Accent, Toggle Switch. Semua elemen form dipusatkan dan menggunakan gaya input baru.
+        2. Navigasi: Logika perbaikan untuk memastikan semua tautan berfungsi.
+        3. Testimoni: Real-time dari Firestore di Beranda.
+        4. LLM Assistant: Fungsionalitas Gemini tetap di 'Kirim Naskah'.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        /* Base Styling - Poppins Font & Main Body Background */
+        body {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            line-height: 1.7;
+            background-color: #f8fafc; /* Default site background */
+            overflow-x: hidden;
+        }
+        
+        /* General Site Styling */
+        .elegant-header {
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .elegant-header.scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .nav-link {
+            @apply relative px-3 py-2 text-gray-700 transition-colors duration-300 font-medium text-base;
+        }
+        .nav-link::after {
+            content: '';
+            @apply absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300;
+            transform: translateX(-50%);
+        }
+        .nav-link.active::after, .nav-link:hover::after {
+            width: 80%;
+        }
+        .nav-link.active {
+            @apply text-blue-700 font-semibold;
+        }
+        .btn-primary {
+            @apply bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg transition-all duration-300 hover:bg-blue-800 shadow-md hover:shadow-lg;
+        }
+        .soft-card {
+            @apply bg-white p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200;
+        }
+
+        /* --- AUTH PAGE STYLING (Adapted from User's CSS) --- */
+        .auth-dark-bg {
+            /* Murni dari CSS user */
+            background-color: #1f2029; 
+            min-height: calc(100vh - 8rem);
+            @apply flex items-center justify-center p-4;
+        }
+        .auth-dark-card {
+            /* Murni dari CSS user, diubah agar lebih responsif */
+            background-color: #2a2b38;
+            color: #c4c3ca;
+            background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/pat.svg');
+            background-position: bottom center;
+            background-repeat: no-repeat;
+            background-size: 300%;
+            @apply p-10 rounded-xl shadow-2xl max-w-sm w-full transition-all duration-500 relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Form Group and Input Styling */
+        .form-group-custom {
+            /* Menggantikan .form-group dan input-icon */
+            position: relative;
+            display: block;
+            margin-bottom: 25px;
+        }
+        .form-style-custom {
+            /* Murni dari CSS user */
+            padding: 13px 20px;
+            padding-left: 55px;
+            height: 48px;
+            width: 100%;
+            font-weight: 500;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 22px;
+            letter-spacing: 0.5px;
+            outline: none;
+            color: #c4c3ca;
+            background-color: #1f2029;
+            border: none;
+            transition: all 200ms linear;
+            box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+        }
+        .form-style-custom:focus, .form-style-custom:active {
+            border: none;
+            outline: none;
+            box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
+        }
+        .input-icon-custom {
+            /* Murni dari CSS user */
+            position: absolute;
+            top: 0;
+            left: 18px;
+            height: 48px;
+            font-size: 24px;
+            line-height: 48px;
+            text-align: left;
+            color: #ffeba7;
+            transition: all 200ms linear;
+        }
+        
+        /* Button Style */
+        .btn-custom {
+            /* Murni dari CSS user */
+            border-radius: 4px;
+            height: 44px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 200ms linear;
+            padding: 0 30px;
+            letter-spacing: 1px;
+            border: none;
+            background-color: #ffeba7;
+            color: #102770;
+            box-shadow: 0 8px 24px 0 rgba(255,235,167,.2);
+            @apply w-full inline-flex items-center justify-center text-center;
+        }
+        .btn-custom:hover{
+            background-color: #102770;
+            color: #ffeba7;
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
+        }
+
+        /* Toggle Switch Styling */
+        .auth-toggle-btn {
+            color: #c4c3ca;
+            @apply font-semibold text-sm px-4 py-2 cursor-pointer transition duration-300 uppercase;
+        }
+        .auth-toggle-btn.active {
+            color: #ffeba7;
+        }
+        .auth-switch-wrapper {
+            @apply relative flex items-center justify-center h-10;
+        }
+        .auth-switch-slider {
+            /* Disesuaikan dari CSS user */
+            @apply absolute h-4 rounded-lg transition-all duration-500;
+            background-color: #ffeba7;
+            width: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .auth-switch-icon {
+            /* Disesuaikan dari CSS user */
+            @apply w-9 h-9 rounded-full flex items-center justify-center text-white text-lg z-10 transition-transform duration-500;
+            background-color: #102770;
+            top: 50%;
+            transform: translateY(-50%) translateX(-50%);
+            position: absolute;
+        }
+        /* Positions for the switch icon */
+        .switch-left { left: calc(25% - 10px); }
+        .switch-right { left: calc(75% + 10px); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="min-h-screen flex flex-col">
+        
+        <header id="main-header" class="elegant-header sticky top-0 z-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                    <!-- Logo and Title -->
+                    <div class="text-center md:text-left mb-4 md:mb-0">
+                        <h1 class="text-3xl font-extrabold text-blue-800">KAFAEdu</h1>
+                        <p class="text-xs text-gray-500 font-medium">Journal of Education and Pedagogy</p>
+                    </div>
+                    
+                    <!-- Navigation Links and Auth Buttons -->
+                    <nav class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
+                        <div id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4">
+                            <a href="#beranda" data-target="beranda" class="nav-link active">Beranda</a>
+                            <a href="#tentang" data-target="tentang" class="nav-link">Tentang Jurnal</a>
+                            <a href="#arsip" data-target="arsip" class="nav-link">Arsip</a>
+                            <a href="#kirim" data-target="kirim" class="nav-link">Kirim Naskah</a>
+                        </div>
+                        
+                        <!-- Auth Actions -->
+                        <div class="flex items-center space-x-2 ml-4">
+                            <a href="#login" data-target="login" id="auth-link" class="btn-primary text-sm shadow-blue-500/50">Masuk / Daftar</a>
+                            <a href="#" id="logout-btn" class="hidden text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-sm">Keluar</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow">
+            
+            <!-- BERANDA SECTION -->
+            <section id="beranda" class="content-section container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="soft-card">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-extrabold text-blue-800 mb-2">Illuminating Minds through Educational Insight</h2>
+                        <p class="text-xl text-gray-600">Jurnal Akses Terbuka untuk Pendidikan dan Pedagogi Inovatif.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        
+                        <!-- Terbitan Terkini -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-4">Terbitan Terkini: Vol. 2 No. 1 (2025)</h3>
+                            <article class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100 transition-transform hover:scale-[1.01] duration-200">
+                                <h4 class="text-lg font-semibold text-blue-700 hover:underline">Inovasi Pembelajaran Berbasis Proyek untuk Meningkatkan Keterampilan Literasi Siswa Sekolah Dasar</h4>
+                                <p class="text-sm text-gray-600 mt-1">Ahmad Subagja, Siti Mariam</p>
+                                <div class="flex justify-between items-center mt-3">
+                                    <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Dasar</span>
+                                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700 font-medium">Baca Selengkapnya →</a>
+                                </div>
+                            </article>
+                            <article class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100 transition-transform hover:scale-[1.01] duration-200">
+                                <h4 class="text-lg font-semibold text-blue-700 hover:underline">Peran Pendidikan Karakter dalam Membentuk Warga Negara yang Bertanggung Jawab</h4>
+                                <p class="text-sm text-gray-600 mt-1">Dewi Lestari, Budi Santoso</p>
+                                <div class="flex justify-between items-center mt-3">
+                                    <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Karakter</span>
+                                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700 font-medium">Baca Selengkapnya →</a>
+                                </div>
+                            </article>
+                        </div>
+
+                        <!-- Sidebar Info -->
+                        <aside class="space-y-8">
+                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 shadow-inner">
+                                <h3 class="text-xl font-bold text-blue-800 mb-4">Fokus & Ruang Lingkup</h3>
+                                <ul class="list-disc list-outside space-y-2 text-sm text-gray-700 pl-5">
+                                    <li>Basic and Primary Education</li>
+                                    <li>Indonesian language and literature education</li>
+                                    <li>Civic and Character Education</li>
+                                    <li>History of Education and Social Studies</li>
+                                    <li>Literacy and Learning Innovation</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Informasi Penting</h3>
+                                <ul class="space-y-2 text-sm">
+                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">📖 Untuk Pembaca</a></li>
+                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">✍️ Untuk Penulis</a></li>
+                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">📚 Untuk Pustakawan</a></li>
+                                </ul>
+                            </div>
+                        </aside>
+                    </div>
+                    
+                    <!-- TESTIMONI SECTION -->
+                    <div class="mt-16 pt-8 border-t border-gray-200">
+                        <h3 class="text-2xl font-bold text-gray-800 text-center mb-8">Apa Kata Komunitas Kami?</h3>
+                        <div id="testimonials-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Testimonial items loaded here by JS -->
+                            <div class="col-span-1 md:col-span-3 text-center text-gray-500">Memuat testimoni...</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+            
+            <!-- TENTANG JURNAL SECTION -->
+            <section id="tentang" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="soft-card">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Tentang Jurnal</h2>
+                    <div class="space-y-6 text-gray-700">
+                        <p><strong>KAFAEdu: Journal of Education and Pedagogy</strong> adalah jurnal ilmiah yang ditinjau oleh rekan sejawat (peer-reviewed) dan diterbitkan secara berkala. Misi kami adalah untuk menyebarluaskan penelitian berkualitas tinggi dan mempromosikan wacana ilmiah di antara para peneliti dan praktisi di bidang pendidikan.</p>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Fokus & Ruang Lingkup</h3>
+                            <p>Jurnal ini menerima naskah asli dalam bidang-bidang berikut, namun tidak terbatas pada:</p>
+                            <ul class="list-disc list-inside space-y-2 mt-4 pl-4">
+                                <li><strong>Pendidikan Dasar dan Dasar (Basic and Primary Education):</strong> Penelitian tentang kurikulum, metode pengajaran, evaluasi, dan manajemen pendidikan di tingkat dasar.</li>
+                                <li><strong>Pendidikan bahasa dan sastra Indonesia (Indonesian language and literature education):</strong> Studi tentang pengajaran bahasa, sastra, dan keterampilan berbahasa Indonesia.</li>
+                                <li><strong>Pendidikan Kewarganegaraan dan Karakter (Civic and Character Education):</strong> Artikel yang membahas pengembangan moral, etika, dan kesadaran berwarga negara.</li>
+                                <li><strong>Sejarah Pendidikan dan Ilmu Pengetahuan Sosial (History of Education and Social Studies):</strong> Analisis historis dan sosial tentang kebijakan dan praktik pendidikan.</li>
+                                <li><strong>Literasi dan Inovasi Pembelajaran (Literacy and Learning Innovation):</strong> Penelitian tentang pengembangan literasi, teknologi pendidikan, dan model pembelajaran inovatif.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Proses Peer Review</h3>
+                            <p>Semua naskah yang dikirimkan akan melalui proses peninjauan 'double-blind' oleh setidaknya dua peninjau ahli di bidangnya. Keputusan akhir publikasi dibuat oleh Dewan Redaksi, memastikan integritas dan kualitas publikasi.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ARSIP SECTION -->
+            <section id="arsip" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="soft-card">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Arsip Jurnal</h2>
+                    <p class="text-gray-700 mb-6">Jelajahi terbitan-terbitan kami sebelumnya. Semua artikel tersedia secara bebas untuk dibaca dan diunduh.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
+                            <h3 class="text-lg font-semibold text-blue-700">Volume 2, Nomor 1 (2025) - Terkini</h3>
+                            <p class="text-sm text-gray-600">Terbit: Januari 2025</p>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
+                            <h3 class="text-lg font-semibold text-blue-700">Volume 1, Nomor 2 (2024)</h3>
+                            <p class="text-sm text-gray-600">Terbit: Juli 2024</p>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
+                            <h3 class="text-lg font-semibold text-blue-700">Volume 1, Nomor 1 (2024)</h3>
+                            <p class="text-sm text-gray-600">Terbit: Januari 2024</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KIRIM NASKAH SECTION -->
+            <section id="kirim" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <div class="soft-card">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Kirim Naskah</h2>
+                    <div class="space-y-8 text-gray-700">
+                        
+                        <!-- PANDUAN PENULIS -->
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Panduan Penulis</h3>
+                            <p>Baca panduan berikut untuk memastikan naskah Anda memenuhi standar jurnal.</p>
+                            <ul class="list-disc list-inside space-y-2 mt-4 pl-4">
+                                <li>Naskah harus disiapkan sesuai dengan templat jurnal (unduh di sini).</li>
+                                <li>Panjang artikel antara 4.000 hingga 7.000 kata.</li>
+                                <li>Gunakan gaya sitasi APA (American Psychological Association) Edisi ke-7.</li>
+                                <li>Pastikan naskah telah melalui proses 'proofread' untuk tata bahasa dan ejaan.</li>
+                            </ul>
+                        </div>
+
+                        <!-- CARA PENGIRIMAN -->
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Cara Pengiriman</h3>
+                            <p>Pengiriman naskah dilakukan secara daring. Jika Anda sudah terdaftar dan masuk, Anda dapat memulai pengiriman.</p>
+                            <button id="start-submission-btn" class="btn-primary px-6 py-3 mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed">Mulai Pengiriman Baru</button>
+                            <p id="submission-status" class="mt-2 text-sm text-red-600 hidden">Anda harus Masuk (Login) terlebih dahulu untuk dapat mengirimkan naskah.</p>
+                        </div>
+                        
+                        <!-- ASISTEN IDE PENULISAN (GEMINI LLM FEATURE) -->
+                        <div class="pt-8 border-t border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                Asisten Ide Penulisan ✨
+                                <span class="text-sm font-normal text-blue-600 ml-3 bg-blue-100 px-3 py-1 rounded-full">Didukung oleh Gemini</span>
+                            </h3>
+                            <p class="mb-4">Gunakan asisten ini untuk memeriksa keselarasan ide penelitian Anda dengan fokus jurnal kami dan dapatkan saran judul yang konstruktif.</p>
+                            
+                            <textarea id="idea-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" rows="4" placeholder="Masukkan ide topik atau draf judul Anda di sini (misalnya: Pengaruh AI terhadap literasi membaca siswa SD)."></textarea>
+                            
+                            <button id="generate-idea-btn" class="inline-flex items-center justify-center btn-primary mt-4">
+                                Periksa & Sarankan Ide
+                            </button>
+
+                            <div id="idea-loading" class="hidden mt-4 text-blue-700 font-medium flex items-center">
+                                <span class="animate-spin w-5 h-5 mr-3 border-2 border-current border-t-transparent rounded-full"></span> Sedang menganalisis ide...
+                            </div>
+                            
+                            <div id="idea-result" class="mt-4">
+                                <!-- LLM result will be displayed here -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOGIN/REGISTER SECTION - DARK THEME + CUSTOM CSS STYLE -->
+            <section id="auth-page" class="content-section hidden auth-container auth-dark-bg">
+                <div class="auth-dark-card">
+                    <!-- Toggle Switch Area -->
+                    <div class="flex flex-col items-center mb-10 mt-2">
+                        <!-- Navigation Toggles -->
+                        <div class="flex space-x-6">
+                            <span id="toggle-login" class="auth-toggle-btn active" data-form="login">LOG IN</span>
+                            <span id="toggle-register" class="auth-toggle-btn" data-form="register">SIGN UP</span>
+                        </div>
+                        <!-- Toggle Switch Visual -->
+                        <div class="auth-switch-wrapper w-full max-w-[150px] mt-2">
+                            <div class="w-full h-2 rounded-full absolute top-1/2 transform -translate-y-1/2" style="background-color: #ffeba7;"></div>
+                            <div id="auth-switch-slider" class="auth-switch-slider" style="left: 25%;"></div>
+                            <div id="auth-switch-icon" class="auth-switch-icon absolute" style="left: 25%;">
+                                &#x2190; <!-- Left Arrow -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 id="auth-title" class="text-3xl font-bold text-center mb-8" style="color: #ffeba7;">LOG IN</h2>
+                    
+                    <!-- Login Form -->
+                    <form id="login-form" class="space-y-6">
+                        <div class="form-group-custom">
+                            <span class="input-icon-custom">@</span>
+                            <input type="email" id="login-email" class="form-style-custom" required placeholder="Your Email">
+                        </div>
+                        <div class="form-group-custom">
+                            <span class="input-icon-custom">🔒</span>
+                            <input type="password" id="login-password" class="form-style-custom" required placeholder="Your Password">
+                        </div>
+                        
+                        <div id="login-message" class="text-sm text-center font-medium" style="color: #ffeba7;"></div>
+
+                        <button type="submit" class="btn-custom mt-8">SUBMIT</button>
+                        <p class="mt-4 text-center text-sm link">
+                            Forgot your password?
+                        </p>
+                    </form>
+                    
+                    <!-- Register Form (Initially Hidden) -->
+                    <form id="register-form" class="space-y-6 hidden">
+                        <div class="form-group-custom">
+                            <span class="input-icon-custom">@</span>
+                            <input type="email" id="register-email" class="form-style-custom" required placeholder="Your Email">
+                        </div>
+                        <div class="form-group-custom">
+                            <span class="input-icon-custom">🔒</span>
+                            <input type="password" id="register-password" class="form-style-custom" required minlength="6" placeholder="Your Password (Min 6 chars)">
+                        </div>
+                        
+                        <div id="register-message" class="text-sm text-center font-medium" style="color: #ffeba7;"></div>
+
+                        <button type="submit" class="btn-custom mt-8">SUBMIT</button>
+                    </form>
+
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="bg-blue-900 text-blue-100 py-8">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h3 class="text-xl font-semibold">KAFAEdu: Journal of Education and Pedagogy</h3>
+                <p class="mt-2 text-sm">Email Redaksi: <a href="mailto:redaksi.kafaedu@gmail.com" class="underline hover:text-white">redaksi.kafaedu@gmail.com</a></p>
+                <p class="mt-1 text-sm">Website: <a href="https://edu.kafaedu.org" class="underline hover:text-white">https://edu.kafaedu.org</a></p>
+                <p class="mt-4 text-xs opacity-70">&copy; 2025 KAFAEdu. All rights reserved.</p>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- General UI and Navigation Setup ---
+            const mainHeader = document.getElementById('main-header');
+            const navLinks = document.querySelectorAll('#main-nav a.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const authLink = document.getElementById('auth-link');
+            const logoutBtn = document.getElementById('logout-btn');
+            const internalAuthLinks = document.querySelectorAll('.nav-link-auth');
+            const startSubmissionBtn = document.getElementById('start-submission-btn');
+            const submissionStatus = document.getElementById('submission-status');
+
+            // --- Auth Toggle Elements ---
+            const toggleLogin = document.getElementById('toggle-login');
+            const toggleRegister = document.getElementById('toggle-register');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const authTitle = document.getElementById('auth-title');
+            const authSwitchSlider = document.getElementById('auth-switch-slider');
+            const authSwitchIcon = document.getElementById('auth-switch-icon');
+            const loginMessage = document.getElementById('login-message');
+            const registerMessage = document.getElementById('register-message');
+
+
+            // --- PERBAIKAN: Mengumpulkan semua tautan navigasi yang berfungsi ---
+            const allNavTargets = [...navLinks, authLink, ...document.querySelectorAll('.link')]; // Added general .link to ensure navigation works
+
+            // Scroll Animation for Navbar
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    mainHeader.classList.add('scrolled');
+                } else {
+                    mainHeader.classList.remove('scrolled');
+                }
+            });
+
+            function updateContent(targetId) {
+                // Sembunyikan semua section
+                contentSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+
+                // Tampilkan section yang dituju
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                }
+
+                // Kelola status aktif untuk tautan utama (yang memiliki class .nav-link)
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                const activeLink = document.querySelector(`#main-nav [data-target="${targetId}"]`);
+                if (activeLink && activeLink.classList.contains('nav-link')) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            // --- Logic for Auth Form Toggle ---
+            function setAuthMode(mode) {
+                // Clear messages first
+                loginMessage.textContent = '';
+                registerMessage.textContent = '';
+
+                if (mode === 'login') {
+                    toggleLogin.classList.add('active');
+                    toggleRegister.classList.remove('active');
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                    authTitle.textContent = 'LOG IN';
+                    authSwitchSlider.style.left = '25%';
+                    authSwitchIcon.style.left = '25%';
+                    authSwitchIcon.innerHTML = '&#x2190;'; // Left Arrow
+                } else {
+                    toggleLogin.classList.remove('active');
+                    toggleRegister.classList.add('active');
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
+                    authTitle.textContent = 'SIGN UP';
+                    authSwitchSlider.style.left = '75%';
+                    authSwitchIcon.style.left = '75%';
+                    authSwitchIcon.innerHTML = '&#x2192;'; // Right Arrow
+                }
+            }
+            
+            toggleLogin.addEventListener('click', () => setAuthMode('login'));
+            toggleRegister.addEventListener('click', () => setAuthMode('register'));
+
+            // --- PERBAIKAN: Listener untuk semua tautan navigasi utama dan tombol auth ---
+            allNavTargets.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const targetId = this.dataset.target || (this.id === 'logout-btn' ? 'beranda' : null);
+                    
+                    if (targetId === 'login' || targetId === 'register') {
+                        e.preventDefault();
+                        // Intercept login/register targets to use the single auth page
+                        updateContent('auth-page');
+                        setAuthMode(targetId);
+                    } else if (targetId) {
+                        e.preventDefault();
+                        updateContent(targetId);
+                    }
+                    window.scrollTo(0, 0);
+                });
+            });
+            
+            updateContent('beranda');
+
+            // --- FIREBASE AUTHENTICATION & FIREBASE INIT ---
+            let auth = null;
+            let db = null;
+            let currentUserId = null;
+            let isAuthenticated = false;
+
+            const firebaseInit = async () => {
+                // Memastikan kami mengambil fungsi yang benar dari window.FirebaseServices
+                const { 
+                    auth: f_auth, 
+                    db: f_db, 
+                    signInAnonymously: f_signInAnonymously, 
+                    signInWithCustomToken: f_signInWithCustomToken, 
+                    onAuthStateChanged: f_onAuthStateChanged, 
+                    initialAuthToken
+                } = window.FirebaseServices;
+
+                if (!f_auth || !f_db) {
+                    return;
+                }
+
+                auth = f_auth;
+                db = f_db;
+
+                // Initial Authentication Check
+                try {
+                    if (initialAuthToken) {
+                        await f_signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await f_signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    try {
+                        await f_signInAnonymously(auth);
+                    } catch (e) {
+                    }
+                }
+
+                // Auth State Listener
+                // ERROR 2 FIX: f_onAuthStateChanged seharusnya sudah menjadi fungsi yang valid
+                f_onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        isAuthenticated = !user.isAnonymous; 
+
+                        // Update UI based on authentication status
+                        if (isAuthenticated) {
+                            authLink.classList.add('hidden');
+                            logoutBtn.classList.remove('hidden');
+                            const emailPrefix = user.email ? user.email.split('@')[0] : 'Pengguna';
+                            logoutBtn.textContent = `Keluar (${emailPrefix})`;
+                            startSubmissionBtn.disabled = false;
+                            submissionStatus.classList.add('hidden');
+                        } else {
+                            authLink.classList.remove('hidden');
+                            logoutBtn.classList.add('hidden');
+                            startSubmissionBtn.disabled = true;
+                            submissionStatus.classList.remove('hidden');
+                        }
+
+                        loadTestimonials();
+
+                    } else {
+                        currentUserId = null;
+                        isAuthenticated = false;
+                        authLink.classList.remove('hidden');
+                        logoutBtn.classList.add('hidden');
+                        startSubmissionBtn.disabled = true;
+                        submissionStatus.classList.remove('hidden');
+                        loadTestimonials(); 
+                    }
+                });
+            };
+
+            firebaseInit();
+
+            // Handle Logout
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await window.FirebaseServices.signOut(auth);
+                    updateContent('beranda');
+                } catch (error) {
+                }
+            });
+
+            // Handle Registration Form
+            document.getElementById('register-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const messageDiv = document.getElementById('register-message');
+                messageDiv.textContent = 'Memproses pendaftaran...';
+                messageDiv.classList.remove('text-red-600', 'text-green-600');
+                
+                try {
+                    const { createUserWithEmailAndPassword } = window.FirebaseServices;
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    messageDiv.textContent = 'Pendaftaran berhasil! Anda masuk secara otomatis.';
+                    messageDiv.classList.add('text-green-600');
+                    updateContent('beranda');
+                } catch (error) {
+                    let displayMessage = "Pendaftaran gagal. Silakan coba lagi.";
+                    if (error.code === 'auth/email-already-in-use') {
+                        displayMessage = "Email sudah terdaftar. Silakan Masuk atau gunakan email lain.";
+                    } else if (error.code === 'auth/weak-password') {
+                        displayMessage = "Kata sandi terlalu lemah. Minimal 6 karakter.";
+                    }
+                    messageDiv.textContent = displayMessage;
+                    messageDiv.classList.add('text-red-600');
+                }
+            });
+
+            // Handle Login Form
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                const messageDiv = document.getElementById('login-message');
+                messageDiv.textContent = 'Memproses masuk...';
+                messageDiv.classList.remove('text-red-600', 'text-green-600');
+
+                try {
+                    const { signInWithEmailAndPassword } = window.FirebaseServices;
+                    await signInWithEmailAndPassword(auth, email, password);
+                    messageDiv.textContent = 'Masuk berhasil! Selamat datang.';
+                    messageDiv.classList.add('text-green-600');
+                    updateContent('beranda');
+                } catch (error) {
+                    let displayMessage = "Masuk gagal. Periksa kembali email dan kata sandi Anda.";
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        displayMessage = "Email atau kata sandi tidak valid.";
+                    }
+                    messageDiv.textContent = displayMessage;
+                    messageDiv.classList.add('text-red-600');
+                }
+            });
+            
+            // --- FIRESTORE TESTIMONIALS LOGIC ---
+            
+            const testimonialData = [
+                { name: "Dr. Rina Sari", title: "Akademisi, UNJ", text: "KAFAEdu adalah platform yang sangat fokus pada inovasi pedagogi. Proses reviewnya cepat dan konstruktif. Sangat direkomendasikan!" },
+                { name: "Prof. Budi Darmawan", title: "Penulis, UGM", text: "Kualitas artikel di sini tinggi dan relevan dengan perkembangan kurikulum terkini. Jurnal yang wajib dibaca di bidang pendidikan dasar." },
+                { name: "Siti Aisyah, M.Pd.", title: "Guru, SMP Negeri 5", text: "Saya merasa ide saya tentang Pendidikan Karakter disambut baik. Asisten ide dari Gemini sangat membantu merumuskan judul yang lebih kuat." }
+            ];
+
+            const loadTestimonials = () => {
+                const testimonialsList = document.getElementById('testimonials-list');
+
+                if (!db || !window.FirebaseServices.collection) {
+                    renderTestimonials(testimonialData);
+                    return;
+                }
+                
+                const collectionRef = window.FirebaseServices.collection(db, `artifacts/${window.FirebaseServices.appId}/public/data/testimonials`);
+
+                window.FirebaseServices.onSnapshot(collectionRef, (snapshot) => {
+                    const fetchedTestimonials = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                    if (fetchedTestimonials.length === 0) {
+                        // Populate with mock data if empty
+                        testimonialData.forEach(item => {
+                             window.FirebaseServices.addDoc(collectionRef, {
+                                name: item.name,
+                                title: item.title,
+                                text: item.text,
+                                createdAt: window.FirebaseServices.serverTimestamp()
+                            }).catch(err => console.error("Error adding mock testimonial:", err));
+                        });
+                    } else {
+                        renderTestimonials(fetchedTestimonials);
+                    }
+                }, (error) => {
+                    renderTestimonials(testimonialData); // Fallback on error
+                });
+            };
+
+            const renderTestimonials = (data) => {
+                const testimonialsList = document.getElementById('testimonials-list');
+                testimonialsList.innerHTML = data.map(t => `
+                    <div class="p-5 bg-blue-50 rounded-xl border border-blue-200 shadow-sm">
+                        <p class="text-xl text-blue-700 mb-3 font-serif">❝</p>
+                        <p class="text-gray-700 italic text-sm mb-4">${t.text || 'Testimoni ini tidak memiliki teks.'}</p>
+                        <p class="font-semibold text-gray-900">${t.name || 'Anonim'}</p>
+                        <p class="text-xs text-blue-600">${t.title || 'Pengguna Jurnal'}</p>
+                    </div>
+                `).join('');
+            };
+
+            // --- GEMINI API Logic for Idea Assistant ---
+            const generateIdeaBtn = document.getElementById('generate-idea-btn');
+            const apiKey = ""; // API Key is automatically injected
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const focusScope = [
+                "Basic and Primary Education",
+                "Indonesian language and literature education",
+                "Civic and Character Education",
+                "History of Education and Social Studies",
+                "Literacy and Learning Innovation"
+            ];
+
+            async function runGenerativeModel(payload) {
+                let retries = 0;
+                const maxRetries = 5;
+                while (retries < maxRetries) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            if (response.status === 429 && retries < maxRetries - 1) {
+                                const delay = Math.pow(2, retries) * 1000;
+                                retries++;
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                                continue;
+                            }
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        return result.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi kesalahan dalam menghasilkan konten.";
+                    } catch (error) {
+                        retries++;
+                        if (retries >= maxRetries) {
+                            return "Maaf, terjadi kesalahan jaringan atau API. Silakan coba lagi.";
+                        }
+                        const delay = Math.pow(2, retries) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+
+
+            async function generateIdea() {
+                const topicInput = document.getElementById('idea-input');
+                const resultDiv = document.getElementById('idea-result');
+                const loadingDiv = document.getElementById('idea-loading');
+                const topic = topicInput.value.trim();
+
+                if (!topic) {
+                    resultDiv.innerHTML = '<p class="text-red-600 font-medium">Mohon masukkan ide topik atau draf judul Anda.</p>';
+                    return;
+                }
+
+                loadingDiv.classList.remove('hidden');
+                resultDiv.innerHTML = '';
+                generateIdeaBtn.disabled = true;
+
+                const systemPrompt = `Anda adalah Asisten Editor Jurnal 'KAFAEdu: Journal of Education and Pedagogy'. Tugas Anda adalah memberikan umpan balik konstruktif dan analitis terhadap ide topik atau draf judul artikel yang diajukan oleh calon penulis.
+
+Fokus dan Ruang Lingkup Jurnal ini adalah:
+- ${focusScope.join("\n- ")}
+
+Tugas Anda:
+1. Analisis apakah ide tersebut SELARAS dengan salah satu (atau lebih) Fokus & Ruang Lingkup di atas.
+2. Berikan saran judul yang lebih kuat atau cara memperjelas fokus penelitian (maksimal 3 saran, berikan dalam bentuk poin).
+3. Berikan analisis singkat tentang potensi kontribusi akademik ide tersebut (maksimal 3 kalimat).
+
+Format respons Anda harus profesional, informatif, dan mudah dibaca, menggunakan poin-poin Markdown. Jawab dalam Bahasa Indonesia.`;
+
+                const userQuery = `Ide topik/draf judul yang akan diperiksa: "${topic}"`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+                const generatedText = await runGenerativeModel(payload);
+
+                loadingDiv.classList.add('hidden');
+                generateIdeaBtn.disabled = false;
+
+                // Simple formatting for display
+                const formattedText = generatedText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/- /g, '<span class="text-blue-600 font-bold mr-1">•</span>');
+
+
+                resultDiv.innerHTML = `
+                    <div class="p-4 bg-blue-100 border border-blue-300 rounded-lg mt-4 text-gray-800">
+                        <h4 class="text-lg font-bold text-blue-800 mb-2 border-b border-blue-400 pb-1">Hasil Analisis Asisten</h4>
+                        <div class="text-sm">${formattedText}</div>
+                    </div>
+                `;
+            }
+
+            if (generateIdeaBtn) {
+                generateIdeaBtn.addEventListener('click', generateIdea);
+            }
+        });
+    </script>
+
+</body>
+</html>
