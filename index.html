@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAFAEdu: Journal of Education and Pedagogy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Mengganti Inter dengan Poppins sesuai permintaan -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Icon Font (Dibutuhkan oleh HTML baru) -->
+    <link rel='stylesheet' href='https://unicons.iconscout.com/release/v2.1.9/css/unicons.css'>
+    
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -50,26 +52,24 @@
             console.warn("Firebase services not available. Running in static mode.");
         }
     </script>
-    <!-- Chosen Palette: Academic Blue (Main Site) | Dark Purple/Yellow (Auth Page - As requested) -->
-    <!-- Application Structure Plan: Mengadopsi estetika Dark Mode dan input dari CSS yang diberikan user (font Poppins, warna #1f2029, aksen #ffeba7) untuk halaman Auth. Mempertahankan single-card centered layout dan fungsionalitas toggle switch yang sudah ada. -->
+    <!-- Chosen Palette: Academic Blue (Main Site) | Dark Flip Card (Auth Page) -->
+    <!-- Application Structure Plan: Mengganti total #auth-page dengan HTML/CSS 3D Flip Card dari user. Menyesuaikan JS agar kompatibel dengan form dan checkbox baru. -->
     <!-- Visualization & Content Choices: 
-        1. Login/Register Design: Dark Mode, Single Card, Yellow Accent, Toggle Switch. Semua elemen form dipusatkan dan menggunakan gaya input baru.
-        2. Navigasi: Logika perbaikan untuk memastikan semua tautan berfungsi.
-        3. Testimoni: Real-time dari Firestore di Beranda.
-        4. LLM Assistant: Fungsionalitas Gemini tetap di 'Kirim Naskah'.
+        1. Login/Register Design: 3D Flip Card murni dari user.
+        2. JS Re-wiring: Mengubah listener navigasi untuk mengontrol checkbox. Menghubungkan form submit ke Firebase.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         /* Base Styling - Poppins Font & Main Body Background */
         body {
             font-family: 'Poppins', sans-serif;
-            font-weight: 400;
+            font-weight: 400; /* Default weight */
             line-height: 1.7;
             background-color: #f8fafc; /* Default site background */
             overflow-x: hidden;
         }
         
-        /* General Site Styling */
+        /* General Site Styling (Navbar, Footer, Cards) */
         .elegant-header {
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -100,34 +100,168 @@
             @apply bg-white p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200;
         }
 
-        /* --- AUTH PAGE STYLING (Adapted from User's CSS) --- */
-        .auth-dark-bg {
-            /* Murni dari CSS user */
-            background-color: #1f2029; 
+        /* --- STYLES FOR AUTH PAGE (From User CSS) --- */
+        
+        /* CATATAN: CSS dari user telah disisipkan di sini. 
+           Satu-satunya perubahan adalah mengubah 'body' menjadi '#auth-page' 
+           untuk membatasi (scope) gaya ini hanya ke halaman otentikasi.
+        */
+
+        #auth-page {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 300;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #c4c3ca;
+            background-color: #1f2029;
+            overflow-x: hidden;
+            /* Properti tambahan untuk layout */
             min-height: calc(100vh - 8rem);
             @apply flex items-center justify-center p-4;
         }
-        .auth-dark-card {
-            /* Murni dari CSS user, diubah agar lebih responsif */
-            background-color: #2a2b38;
+
+        #auth-page a {
+            cursor: pointer;
+            transition: all 200ms linear;
+        }
+        #auth-page a:hover {
+            text-decoration: none;
+        }
+        #auth-page .link {
             color: #c4c3ca;
+        }
+        #auth-page .link:hover {
+            color: #ffeba7;
+        }
+        #auth-page p {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        #auth-page h4 {
+            font-weight: 600;
+            color: #c4c3ca; /* Memastikan h4 juga berwarna terang */
+        }
+        #auth-page h6 span{
+            padding: 0 20px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #c4c3ca; /* Memastikan h6 juga berwarna terang */
+        }
+        #auth-page .section{
+            position: relative;
+            width: 100%;
+            display: block;
+        }
+        #auth-page .full-height{
+            min-height: 100vh;
+        }
+        #auth-page [type="checkbox"]:checked,
+        #auth-page [type="checkbox"]:not(:checked){
+            position: absolute;
+            left: -9999px;
+        }
+        #auth-page .checkbox:checked + label,
+        #auth-page .checkbox:not(:checked) + label{
+            position: relative;
+            display: block;
+            text-align: center;
+            width: 60px;
+            height: 16px;
+            border-radius: 8px;
+            padding: 0;
+            margin: 10px auto;
+            cursor: pointer;
+            background-color: #ffeba7;
+        }
+        #auth-page .checkbox:checked + label:before,
+        #auth-page .checkbox:not(:checked) + label:before{
+            position: absolute;
+            display: block;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: #ffeba7;
+            background-color: #102770;
+            font-family: 'unicons';
+            content: '\eb4f';
+            z-index: 20;
+            top: -10px;
+            left: -10px;
+            line-height: 36px;
+            text-align: center;
+            font-size: 24px;
+            transition: all 0.5s ease;
+        }
+        #auth-page .checkbox:checked + label:before {
+            transform: translateX(44px) rotate(-270deg);
+        }
+
+
+        #auth-page .card-3d-wrap {
+            position: relative;
+            width: 440px;
+            max-width: 100%;
+            height: 480px; /* Diperbesar sedikit untuk message error */
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            perspective: 800px;
+            margin-top: 60px;
+        }
+        #auth-page .card-3d-wrapper {
+            width: 100%;
+            height: 100%;
+            position:absolute;    
+            top: 0;
+            left: 0;  
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            transition: all 600ms ease-out; 
+        }
+        #auth-page .card-front, #auth-page .card-back {
+            width: 100%;
+            height: 100%;
+            background-color: #2a2b38;
             background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/pat.svg');
             background-position: bottom center;
             background-repeat: no-repeat;
             background-size: 300%;
-            @apply p-10 rounded-xl shadow-2xl max-w-sm w-full transition-all duration-500 relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: absolute;
+            border-radius: 6px;
+            left: 0;
+            top: 0;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            -webkit-backface-visibility: hidden;
+            -moz-backface-visibility: hidden;
+            -o-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
-        
-        /* Form Group and Input Styling */
-        .form-group-custom {
-            /* Menggantikan .form-group dan input-icon */
+        #auth-page .card-back {
+            transform: rotateY(180deg);
+        }
+        #auth-page .checkbox:checked ~ .card-3d-wrap .card-3d-wrapper {
+            transform: rotateY(180deg);
+        }
+        #auth-page .center-wrap{
+            position: absolute;
+            width: 100%;
+            padding: 0 35px;
+            top: 50%;
+            left: 0;
+            transform: translate3d(0, -50%, 35px) perspective(100px);
+            z-index: 20;
+            display: block;
+        }
+
+
+        #auth-page .form-group{ 
             position: relative;
             display: block;
-            margin-bottom: 25px;
+            margin: 0;
+            padding: 0;
         }
-        .form-style-custom {
-            /* Murni dari CSS user */
+        #auth-page .form-style {
             padding: 13px 20px;
             padding-left: 55px;
             height: 48px;
@@ -141,16 +275,17 @@
             color: #c4c3ca;
             background-color: #1f2029;
             border: none;
+            -webkit-transition: all 200ms linear;
             transition: all 200ms linear;
             box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
         }
-        .form-style-custom:focus, .form-style-custom:active {
+        #auth-page .form-style:focus,
+        #auth-page .form-style:active {
             border: none;
             outline: none;
             box-shadow: 0 4px 8px 0 rgba(21,21,21,.2);
         }
-        .input-icon-custom {
-            /* Murni dari CSS user */
+        #auth-page .input-icon {
             position: absolute;
             top: 0;
             left: 18px;
@@ -159,62 +294,72 @@
             line-height: 48px;
             text-align: left;
             color: #ffeba7;
+            -webkit-transition: all 200ms linear;
             transition: all 200ms linear;
         }
-        
-        /* Button Style */
-        .btn-custom {
-            /* Murni dari CSS user */
+
+        /* Placeholder Styles */
+        #auth-page .form-group input:-ms-input-placeholder  {
+            color: #c4c3ca;
+            opacity: 0.7;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        /* ... (semua placeholder styles lainnya) ... */
+        #auth-page .form-group input:focus::-webkit-input-placeholder  {
+            opacity: 0;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+
+        #auth-page .btn{  
             border-radius: 4px;
             height: 44px;
             font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
+            -webkit-transition : all 200ms linear;
             transition: all 200ms linear;
             padding: 0 30px;
             letter-spacing: 1px;
+            display: -webkit-inline-flex;
+            display: -ms-inline-flexbox;
+            display: inline-flex;
+            -webkit-align-items: center;
+            -moz-align-items: center;
+            -ms-align-items: center;
+            align-items: center;
+            -webkit-justify-content: center;
+            -moz-justify-content: center;
+            -ms-justify-content: center;
+            justify-content: center;
+            -ms-flex-pack: center;
+            text-align: center;
             border: none;
             background-color: #ffeba7;
             color: #102770;
             box-shadow: 0 8px 24px 0 rgba(255,235,167,.2);
-            @apply w-full inline-flex items-center justify-center text-center;
+            width: 100%; /* Memastikan tombol submit full-width */
         }
-        .btn-custom:hover{
+        #auth-page .btn:active,
+        #auth-page .btn:focus{  
             background-color: #102770;
             color: #ffeba7;
             box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
         }
-
-        /* Toggle Switch Styling */
-        .auth-toggle-btn {
-            color: #c4c3ca;
-            @apply font-semibold text-sm px-4 py-2 cursor-pointer transition duration-300 uppercase;
-        }
-        .auth-toggle-btn.active {
-            color: #ffeba7;
-        }
-        .auth-switch-wrapper {
-            @apply relative flex items-center justify-center h-10;
-        }
-        .auth-switch-slider {
-            /* Disesuaikan dari CSS user */
-            @apply absolute h-4 rounded-lg transition-all duration-500;
-            background-color: #ffeba7;
-            width: 60px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .auth-switch-icon {
-            /* Disesuaikan dari CSS user */
-            @apply w-9 h-9 rounded-full flex items-center justify-center text-white text-lg z-10 transition-transform duration-500;
+        #auth-page .btn:hover{  
             background-color: #102770;
-            top: 50%;
-            transform: translateY(-50%) translateX(-50%);
-            position: absolute;
+            color: #ffeba7;
+            box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
         }
-        /* Positions for the switch icon */
-        .switch-left { left: calc(25% - 10px); }
-        .switch-right { left: calc(75% + 10px); }
+        /* Style untuk pesan error/sukses */
+        .auth-message {
+            font-size: 12px;
+            text-align: center;
+            height: 20px;
+            color: #ffeba7;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -421,63 +566,78 @@
                 </div>
             </section>
 
-            <!-- LOGIN/REGISTER SECTION - DARK THEME + CUSTOM CSS STYLE -->
-            <section id="auth-page" class="content-section hidden auth-container auth-dark-bg">
-                <div class="auth-dark-card">
-                    <!-- Toggle Switch Area -->
-                    <div class="flex flex-col items-center mb-10 mt-2">
-                        <!-- Navigation Toggles -->
-                        <div class="flex space-x-6">
-                            <span id="toggle-login" class="auth-toggle-btn active" data-form="login">LOG IN</span>
-                            <span id="toggle-register" class="auth-toggle-btn" data-form="register">SIGN UP</span>
-                        </div>
-                        <!-- Toggle Switch Visual -->
-                        <div class="auth-switch-wrapper w-full max-w-[150px] mt-2">
-                            <div class="w-full h-2 rounded-full absolute top-1/2 transform -translate-y-1/2" style="background-color: #ffeba7;"></div>
-                            <div id="auth-switch-slider" class="auth-switch-slider" style="left: 25%;"></div>
-                            <div id="auth-switch-icon" class="auth-switch-icon absolute" style="left: 25%;">
-                                &#x2190; <!-- Left Arrow -->
+            <!-- LOGIN/REGISTER SECTION - 3D FLIP CARD (From User HTML/CSS) -->
+            <section id="auth-page" class="content-section hidden">
+                <!-- Konten di dalam section ini diambil langsung dari HTML user -->
+                <div class="section">
+                    <div class="container">
+                        <div class="row full-height justify-content-center" style="min-height: auto;"> <!-- Menghapus full-height agar pas -->
+                            <div class="col-12 text-center align-self-center py-5">
+                                <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                                    <h6 class="mb-0 pb-3"><span>Log In </span><span>Sign Up</span></h6>
+                                    
+                                    <!-- Checkbox yang mengontrol flip -->
+                                    <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
+                                    <label for="reg-log"></label>
+                                    
+                                    <div class="card-3d-wrap mx-auto">
+                                        <div class="card-3d-wrapper">
+                                            
+                                            <!-- FRONT CARD (LOGIN) -->
+                                            <div class="card-front">
+                                                <div class="center-wrap">
+                                                    <div class="section text-center">
+                                                        <h4 class="mb-4 pb-3">Log In</h4>
+                                                        
+                                                        <!-- FORM LOGIN (Disesuaikan untuk Firebase) -->
+                                                        <form id="login-form">
+                                                            <div class="form-group">
+                                                                <input type="email" class="form-style" placeholder="Your Email" id="login-email" autocomplete="off" required>
+                                                                <i class="input-icon uil uil-at"></i>
+                                                            </div>  
+                                                            <div class="form-group mt-2">
+                                                                <input type="password" class="form-style" placeholder="Your Password" id="login-password" autocomplete="off" required>
+                                                                <i class="input-icon uil uil-lock-alt"></i>
+                                                            </div>
+                                                            <div id="login-message" class="auth-message"></div>
+                                                            <button type="submit" class="btn mt-4">submit</button>
+                                                            <p class="mb-0 mt-4 text-center"><a href="#0" class="link">Forgot your password?</a></p>
+                                                        </form>
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- BACK CARD (REGISTER) -->
+                                            <div class="card-back">
+                                                <div class="center-wrap">
+                                                    <div class="section text-center">
+                                                        <h4 class="mb-4 pb-3">Sign Up</h4>
+                                                        
+                                                        <!-- FORM REGISTER (Disesuaikan untuk Firebase) -->
+                                                        <form id="register-form">
+                                                            <div class="form-group mt-2">
+                                                                <input type="email" class="form-style" placeholder="Your Email" id="register-email" autocomplete="off" required>
+                                                                <i class="input-icon uil uil-at"></i>
+                                                            </div>  
+                                                            <div class="form-group mt-2">
+                                                                <input type="password" class="form-style" placeholder="Your Password" id="register-password" minlength="6" autocomplete="off" required>
+                                                                <i class="input-icon uil uil-lock-alt"></i>
+                                                            </div>
+                                                            <div id="register-message" class="auth-message"></div>
+                                                            <button type="submit" class="btn mt-4">submit</button>
+                                                        </form>
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <h2 id="auth-title" class="text-3xl font-bold text-center mb-8" style="color: #ffeba7;">LOG IN</h2>
-                    
-                    <!-- Login Form -->
-                    <form id="login-form" class="space-y-6">
-                        <div class="form-group-custom">
-                            <span class="input-icon-custom">@</span>
-                            <input type="email" id="login-email" class="form-style-custom" required placeholder="Your Email">
-                        </div>
-                        <div class="form-group-custom">
-                            <span class="input-icon-custom">🔒</span>
-                            <input type="password" id="login-password" class="form-style-custom" required placeholder="Your Password">
-                        </div>
-                        
-                        <div id="login-message" class="text-sm text-center font-medium" style="color: #ffeba7;"></div>
-
-                        <button type="submit" class="btn-custom mt-8">SUBMIT</button>
-                        <p class="mt-4 text-center text-sm link">
-                            Forgot your password?
-                        </p>
-                    </form>
-                    
-                    <!-- Register Form (Initially Hidden) -->
-                    <form id="register-form" class="space-y-6 hidden">
-                        <div class="form-group-custom">
-                            <span class="input-icon-custom">@</span>
-                            <input type="email" id="register-email" class="form-style-custom" required placeholder="Your Email">
-                        </div>
-                        <div class="form-group-custom">
-                            <span class="input-icon-custom">🔒</span>
-                            <input type="password" id="register-password" class="form-style-custom" required minlength="6" placeholder="Your Password (Min 6 chars)">
-                        </div>
-                        
-                        <div id="register-message" class="text-sm text-center font-medium" style="color: #ffeba7;"></div>
-
-                        <button type="submit" class="btn-custom mt-8">SUBMIT</button>
-                    </form>
-
                 </div>
             </section>
 
@@ -502,24 +662,17 @@
             const contentSections = document.querySelectorAll('.content-section');
             const authLink = document.getElementById('auth-link');
             const logoutBtn = document.getElementById('logout-btn');
-            const internalAuthLinks = document.querySelectorAll('.nav-link-auth');
             const startSubmissionBtn = document.getElementById('start-submission-btn');
             const submissionStatus = document.getElementById('submission-status');
 
-            // --- Auth Toggle Elements ---
-            const toggleLogin = document.getElementById('toggle-login');
-            const toggleRegister = document.getElementById('toggle-register');
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const authTitle = document.getElementById('auth-title');
-            const authSwitchSlider = document.getElementById('auth-switch-slider');
-            const authSwitchIcon = document.getElementById('auth-switch-icon');
+            // --- Auth Flip Card Elements (Desain Baru) ---
+            const regLogCheckbox = document.getElementById('reg-log');
             const loginMessage = document.getElementById('login-message');
             const registerMessage = document.getElementById('register-message');
 
 
             // --- PERBAIKAN: Mengumpulkan semua tautan navigasi yang berfungsi ---
-            const allNavTargets = [...navLinks, authLink, ...document.querySelectorAll('.link')]; // Added general .link to ensure navigation works
+            const allNavTargets = [...navLinks, authLink, ...document.querySelectorAll('.link')]; 
 
             // Scroll Animation for Navbar
             window.addEventListener('scroll', () => {
@@ -551,47 +704,38 @@
                     activeLink.classList.add('active');
                 }
             }
-
-            // --- Logic for Auth Form Toggle ---
-            function setAuthMode(mode) {
-                // Clear messages first
-                loginMessage.textContent = '';
-                registerMessage.textContent = '';
-
-                if (mode === 'login') {
-                    toggleLogin.classList.add('active');
-                    toggleRegister.classList.remove('active');
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                    authTitle.textContent = 'LOG IN';
-                    authSwitchSlider.style.left = '25%';
-                    authSwitchIcon.style.left = '25%';
-                    authSwitchIcon.innerHTML = '&#x2190;'; // Left Arrow
-                } else {
-                    toggleLogin.classList.remove('active');
-                    toggleRegister.classList.add('active');
-                    loginForm.classList.add('hidden');
-                    registerForm.classList.remove('hidden');
-                    authTitle.textContent = 'SIGN UP';
-                    authSwitchSlider.style.left = '75%';
-                    authSwitchIcon.style.left = '75%';
-                    authSwitchIcon.innerHTML = '&#x2192;'; // Right Arrow
-                }
-            }
             
-            toggleLogin.addEventListener('click', () => setAuthMode('login'));
-            toggleRegister.addEventListener('click', () => setAuthMode('register'));
+            // --- (DIHAPUS) Logic for Auth Form Toggle (setAuthMode) ---
+            // Fungsi ini tidak lagi diperlukan karena CSS murni (checkbox) mengontrol tampilan.
 
-            // --- PERBAIKAN: Listener untuk semua tautan navigasi utama dan tombol auth ---
+            // --- PERBARUIAN: Listener untuk Checkbox Flip Card ---
+            // Saat kartu dibalik, bersihkan pesan error.
+            if (regLogCheckbox) {
+                regLogCheckbox.addEventListener('change', () => {
+                    if(loginMessage) loginMessage.textContent = '';
+                    if(registerMessage) registerMessage.textContent = '';
+                });
+            }
+
+            // --- PERBARUIAN: Listener untuk semua tautan navigasi ---
             allNavTargets.forEach(link => {
                 link.addEventListener('click', function(e) {
                     const targetId = this.dataset.target || (this.id === 'logout-btn' ? 'beranda' : null);
                     
                     if (targetId === 'login' || targetId === 'register') {
                         e.preventDefault();
-                        // Intercept login/register targets to use the single auth page
+                        // Tampilkan halaman auth
                         updateContent('auth-page');
-                        setAuthMode(targetId);
+                        
+                        // Kontrol checkbox untuk menampilkan kartu yang benar
+                        if (regLogCheckbox) {
+                            regLogCheckbox.checked = (targetId === 'register');
+                        }
+                        
+                        // Bersihkan pesan error saat berganti
+                        if(loginMessage) loginMessage.textContent = '';
+                        if(registerMessage) registerMessage.textContent = '';
+                        
                     } else if (targetId) {
                         e.preventDefault();
                         updateContent(targetId);
@@ -641,7 +785,6 @@
                 }
 
                 // Auth State Listener
-                // ERROR 2 FIX: f_onAuthStateChanged seharusnya sudah menjadi fungsi yang valid
                 f_onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUserId = user.uid;
@@ -688,55 +831,61 @@
                 }
             });
 
-            // Handle Registration Form
+            // Handle Registration Form (ID Form Disesuaikan)
             document.getElementById('register-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('register-email').value;
                 const password = document.getElementById('register-password').value;
                 const messageDiv = document.getElementById('register-message');
                 messageDiv.textContent = 'Memproses pendaftaran...';
-                messageDiv.classList.remove('text-red-600', 'text-green-600');
+                messageDiv.style.color = '#ffeba7';
                 
                 try {
                     const { createUserWithEmailAndPassword } = window.FirebaseServices;
                     await createUserWithEmailAndPassword(auth, email, password);
-                    messageDiv.textContent = 'Pendaftaran berhasil! Anda masuk secara otomatis.';
-                    messageDiv.classList.add('text-green-600');
-                    updateContent('beranda');
+                    messageDiv.textContent = 'Pendaftaran berhasil! Anda masuk.';
+                    messageDiv.style.color = '#32cd32'; // Hijau
+                    // Flip kembali ke login setelah sukses
+                    setTimeout(() => {
+                        if (regLogCheckbox) regLogCheckbox.checked = false;
+                        updateContent('beranda');
+                    }, 1500);
                 } catch (error) {
-                    let displayMessage = "Pendaftaran gagal. Silakan coba lagi.";
+                    let displayMessage = "Pendaftaran gagal. Coba lagi.";
                     if (error.code === 'auth/email-already-in-use') {
-                        displayMessage = "Email sudah terdaftar. Silakan Masuk atau gunakan email lain.";
+                        displayMessage = "Email sudah terdaftar. Silakan Masuk.";
                     } else if (error.code === 'auth/weak-password') {
-                        displayMessage = "Kata sandi terlalu lemah. Minimal 6 karakter.";
+                        displayMessage = "Kata sandi terlalu lemah (Min 6 karakter).";
                     }
                     messageDiv.textContent = displayMessage;
-                    messageDiv.classList.add('text-red-600');
+                    messageDiv.style.color = '#ff6b6b'; // Merah
                 }
             });
 
-            // Handle Login Form
+            // Handle Login Form (ID Form Disesuaikan)
             document.getElementById('login-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('login-email').value;
                 const password = document.getElementById('login-password').value;
                 const messageDiv = document.getElementById('login-message');
                 messageDiv.textContent = 'Memproses masuk...';
-                messageDiv.classList.remove('text-red-600', 'text-green-600');
+                messageDiv.style.color = '#ffeba7';
 
                 try {
                     const { signInWithEmailAndPassword } = window.FirebaseServices;
                     await signInWithEmailAndPassword(auth, email, password);
                     messageDiv.textContent = 'Masuk berhasil! Selamat datang.';
-                    messageDiv.classList.add('text-green-600');
-                    updateContent('beranda');
+                    messageDiv.style.color = '#32cd32'; // Hijau
+                    setTimeout(() => {
+                        updateContent('beranda');
+                    }, 1000);
                 } catch (error) {
-                    let displayMessage = "Masuk gagal. Periksa kembali email dan kata sandi Anda.";
+                    let displayMessage = "Masuk gagal.";
                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                         displayMessage = "Email atau kata sandi tidak valid.";
                     }
                     messageDiv.textContent = displayMessage;
-                    messageDiv.classList.add('text-red-600');
+                    messageDiv.style.color = '#ff6b6b'; // Merah
                 }
             });
             
