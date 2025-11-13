@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // INILAH PENGECEKAN YANG HILANG:
             if (!firebaseConfig || !firebaseConfig.apiKey) {
-                throw new Error("Konfigurasi Firebase (apiKey, dll) tidak ditemukan. Masuk ke 'Mode Offline'.");
+                throw new Error("Konfigurasi Firebase (apiKey, dll) tidak ditemukan di 'window.KAFAEduConfig'. Harap periksa file .env dan welcome.blade.php Anda.");
             }
 
             // Inisialisasi Firebase (Ini adalah baris yang sebelumnya crash)
