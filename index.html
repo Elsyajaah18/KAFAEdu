@@ -1,108 +1,102 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAFAEdu: Journal of Education and Pedagogy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <!-- Icon Font (Dibutuhkan oleh 3D Flip Card Auth) -->
-    <link rel='stylesheet' href='https://unicons.iconscout.com/release/v2.1.9/css/unicons.css'>
     
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins (Sesuai permintaan 3D Auth) & Inter (Default) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Library (Sesuai permintaan 3D Auth) -->
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.9/css/unicons.css">
+
     <!-- Firebase SDKs -->
     <script type="module">
+        // Impor fungsi yang diperlukan dari SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // PERBAIKAN: Mengimpor getDocs
-        import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, setLogLevel, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            onSnapshot, 
+            collection, 
+            query, 
+            getDocs,
+            addDoc,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the environment
+        // Konfigurasi Firebase (Akan diganti oleh environment)
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // Expose Firebase services globally for use in the <script> block
-        window.FirebaseServices = {};
 
-        if (Object.keys(firebaseConfig).length > 0) {
-            setLogLevel('debug');
-            const app = initializeApp(firebaseConfig);
-            
-            // Mengalokasikan fungsi-fungsi yang diimpor langsung ke objek global
-            window.FirebaseServices.auth = getAuth(app);
-            window.FirebaseServices.db = getFirestore(app);
-            
-            // Firestore
-            window.FirebaseServices.collection = collection;
-            window.FirebaseServices.query = query;
-            window.FirebaseServices.onSnapshot = onSnapshot;
-            window.FirebaseServices.addDoc = addDoc;
-            window.FirebaseServices.serverTimestamp = serverTimestamp;
-            window.FirebaseServices.getDocs = getDocs; // PERBAIKAN: Menambahkan getDocs
-            
-            // Auth
-            window.FirebaseServices.signInAnonymously = signInAnonymously;
-            window.FirebaseServices.signInWithCustomToken = signInWithCustomToken;
-            window.FirebaseServices.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-            window.FirebaseServices.signInWithEmailAndPassword = signInWithEmailAndPassword;
-            window.FirebaseServices.onAuthStateChanged = onAuthStateChanged;
-            window.FirebaseServices.signOut = signOut;
-            
-            window.FirebaseServices.appId = appId;
-            window.FirebaseServices.initialAuthToken = initialAuthToken;
-        } else {
-            console.warn("Firebase services not available. Running in static mode.");
-        }
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        setLogLevel('Debug');
+
+        // Menyediakan fungsi Firebase secara global untuk digunakan di skrip lain
+        window.FirebaseServices = {
+            db,
+            auth,
+            doc,
+            getDoc,
+            setDoc,
+            onSnapshot,
+            collection,
+            query,
+            getDocs,
+            addDoc,
+            signInAnonymously,
+            signInWithCustomToken,
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            appId
+        };
     </script>
-    <!-- Chosen Palette: Academic Blue (Main Site) | Dark Flip Card (Auth Page) -->
-    <!-- Application Structure Plan: Mengubah #beranda menjadi desain landing page full-width, menghapus sidebar, dan menambahkan Hero section, 5-icon scope, dan 3-step process. -->
-    <!-- Visualization & Content Choices: 
-        1. Beranda: Didesain ulang sebagai landing page flow.
-        2. JS: Menambahkan '.spa-nav-link' ke query selector 'allNavTargets' agar CTA baru berfungsi.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
     <style>
-        /* Base Styling - Poppins Font & Main Body Background */
+        /* Menggunakan font Inter sebagai default, Poppins untuk auth */
         body {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 400; /* Default weight */
-            line-height: 1.7;
-            background-color: #f8fafc; /* Default site background */
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
         }
-        
-        /* Navlink (tetap dipertahankan karena elegan) */
-        .nav-link {
-            @apply relative px-3 py-2 text-gray-700 transition-colors duration-300 font-medium text-base;
+
+        /* Styling untuk Header Baru (V12) */
+        .header-shadow {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        .nav-link::after {
-            content: '';
-            @apply absolute bottom-0 left-1/2 w-0 h-0.5 bg-blue-600 transition-all duration-300;
-            transform: translateX(-50%);
-        }
-        .nav-link.active::after, .nav-link:hover::after {
-            width: 80%;
-        }
-        .nav-link.active {
-            @apply text-blue-700 font-semibold;
-        }
-        .btn-primary {
-            @apply bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg transition-all duration-300 hover:bg-blue-800 shadow-md hover:shadow-lg;
-        }
-        .soft-card {
-            @apply bg-white p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200;
-        }
-        
-        /* CSS untuk Mobile Drawer (Baru) */
         #mobile-drawer {
             transition: transform 0.3s ease-in-out;
         }
-        #drawer-overlay {
-            transition: opacity 0.3s ease-in-out;
+        .drawer-open {
+            transform: translateX(0);
+        }
+        .drawer-closed {
+            transform: translateX(100%);
         }
 
-        /* --- STYLES FOR AUTH PAGE (From User CSS) --- */
-        
+        /* Meng-scope CSS 3D Auth (V11) agar tidak bentrok */
         #auth-page {
             font-family: 'Poppins', sans-serif;
             font-weight: 300;
@@ -110,12 +104,8 @@
             line-height: 1.7;
             color: #c4c3ca;
             background-color: #1f2029;
-            overflow-x: hidden;
-            /* Properti tambahan untuk layout */
-            min-height: calc(100vh - 4rem); /* Disesuaikan dengan tinggi header baru (h-16 -> 4rem) */
-            @apply flex items-center justify-center p-4;
+            overflow: hidden; /* Mencegah scroll di halaman auth */
         }
-
         #auth-page a {
             cursor: pointer;
             transition: all 200ms linear;
@@ -136,13 +126,16 @@
         }
         #auth-page h4 {
             font-weight: 600;
-            color: #c4c3ca; /* Memastikan h4 juga berwarna terang */
+            color: #c4c3ca; /* Pastikan h4 juga berwarna terang */
+        }
+        #auth-page h6 {
+            font-weight: 700;
+            color: #c4c3ca; /* Pastikan h6 juga berwarna terang */
         }
         #auth-page h6 span{
             padding: 0 20px;
             text-transform: uppercase;
             font-weight: 700;
-            color: #c4c3ca; /* Memastikan h6 juga berwarna terang */
         }
         #auth-page .section{
             position: relative;
@@ -192,13 +185,11 @@
         #auth-page .checkbox:checked + label:before {
             transform: translateX(44px) rotate(-270deg);
         }
-
-
         #auth-page .card-3d-wrap {
             position: relative;
             width: 440px;
             max-width: 100%;
-            height: 480px; /* Diperbesar sedikit untuk message error */
+            height: 480px; /* Menambah tinggi untuk form register */
             -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
             perspective: 800px;
@@ -207,12 +198,12 @@
         #auth-page .card-3d-wrapper {
             width: 100%;
             height: 100%;
-            position:absolute;    
+            position:absolute;
             top: 0;
-            left: 0;  
+            left: 0;
             -webkit-transform-style: preserve-3d;
             transform-style: preserve-3d;
-            transition: all 600ms ease-out; 
+            transition: all 600ms ease-out;
         }
         #auth-page .card-front, #auth-page .card-back {
             width: 100%;
@@ -249,9 +240,7 @@
             z-index: 20;
             display: block;
         }
-
-
-        #auth-page .form-group{ 
+        #auth-page .form-group{
             position: relative;
             display: block;
             margin: 0;
@@ -293,22 +282,51 @@
             -webkit-transition: all 200ms linear;
             transition: all 200ms linear;
         }
-
-        /* Placeholder Styles */
         #auth-page .form-group input:-ms-input-placeholder  {
             color: #c4c3ca;
             opacity: 0.7;
             -webkit-transition: all 200ms linear;
             transition: all 200ms linear;
         }
-        /* ... (semua placeholder styles lainnya) ... */
+        #auth-page .form-group input::-moz-placeholder  {
+            color: #c4c3ca;
+            opacity: 0.7;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        #auth-page .form-group input:-moz-placeholder  {
+            color: #c4c3ca;
+            opacity: 0.7;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        #auth-page .form-group input::-webkit-input-placeholder  {
+            color: #c4c3ca;
+            opacity: 0.7;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        #auth-page .form-group input:focus:-ms-input-placeholder  {
+            opacity: 0;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        #auth-page .form-group input:focus::-moz-placeholder  {
+            opacity: 0;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
+        #auth-page .form-group input:focus:-moz-placeholder  {
+            opacity: 0;
+            -webkit-transition: all 200ms linear;
+            transition: all 200ms linear;
+        }
         #auth-page .form-group input:focus::-webkit-input-placeholder  {
             opacity: 0;
             -webkit-transition: all 200ms linear;
             transition: all 200ms linear;
         }
-
-        #auth-page .btn{  
+        #auth-page .btn{
             border-radius: 4px;
             height: 44px;
             font-size: 13px;
@@ -335,413 +353,597 @@
             background-color: #ffeba7;
             color: #102770;
             box-shadow: 0 8px 24px 0 rgba(255,235,167,.2);
-            width: 100%; /* Memastikan tombol submit full-width */
         }
         #auth-page .btn:active,
-        #auth-page .btn:focus{  
+        #auth-page .btn:focus{
             background-color: #102770;
             color: #ffeba7;
             box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
         }
-        #auth-page .btn:hover{  
+        #auth-page .btn:hover{
             background-color: #102770;
             color: #ffeba7;
             box-shadow: 0 8px 24px 0 rgba(16,39,112,.2);
         }
-        /* Style untuk pesan error/sukses */
-        .auth-message {
-            font-size: 12px;
-            text-align: center;
-            height: 20px;
-            color: #ffeba7;
-            margin-top: 10px;
+
+        /* Styling untuk Submission Wizard (V18) */
+        .step-link {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .step-link.active {
+            background-color: #063c7c; /* Biru gelap */
+            color: white;
+            border-color: #063c7c;
+        }
+        .step-link.disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
         }
     </style>
 </head>
-<body class="antialiased">
 
-    <div class="min-h-screen flex flex-col">
-        
-        <!-- ===== HEADER ===== -->
-        <header id="main-header" class="bg-white shadow-md sticky top-0 z-40">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                
-                <!-- Logo KAFAEdu -->
-                <div class="text-left">
-                    <h1 class="text-3xl font-extrabold text-blue-800">KAFAEdu</h1>
-                    <p class="text-xs text-gray-500 font-medium">Journal of Education and Pedagogy</p>
+<body class="bg-gray-100">
+
+    <!-- Header / Navbar (V12) -->
+    <header class="bg-white header-shadow sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link text-2xl font-extrabold text-[#063c7c]">
+                        KAFAEdu
+                    </a>
                 </div>
 
-                <!-- Hamburger -->
-                <button id="drawer-toggle" class="md:hidden text-gray-700 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-
-                <!-- Navigasi Desktop -->
-                <nav id="main-nav" class="hidden md:flex items-center space-x-1 lg:space-x-4 text-sm font-medium text-gray-600">
-                    <a href="#beranda" data-target="beranda" class="nav-link active">Beranda</a>
-                    <a href="#tentang" data-target="tentang" class="nav-link">Tentang Jurnal</a>
-                    <a href="#arsip" data-target="arsip" class="nav-link">Arsip</a>
-                    <a href="#kirim" data-target="kirim" class="nav-link">Kirim Naskah</a>
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex md:items-center md:space-x-8">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Arsip</a>
+                    <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Kirim Naskah</a>
                     
-                    <!-- Tombol Auth -->
-                    <div class="flex items-center space-x-2 ml-4">
-                        <a href="#login" data-target="login" id="auth-link" class="btn-primary text-sm shadow-blue-500/50">Masuk / Daftar</a>
-                        <a href="#" id="logout-btn" class="hidden text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-sm">Keluar</a>
+                    <!-- Tombol Auth Desktop -->
+                    <div id="auth-buttons-desktop" class="flex items-center space-x-2">
+                        <button id="auth-nav-button" data-target="auth-page" class="spa-nav-link hidden bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e] transition-shadow duration-200 shadow-sm">
+                            Masuk / Daftar
+                        </button>
+                        <button id="logout-button" class="hidden bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-shadow duration-200 shadow-sm">
+                            Keluar
+                        </button>
                     </div>
                 </nav>
-            </div>
-        </header>
 
-        <!-- ===== MOBILE DRAWER ===== -->
-        <!-- Overlay -->
-        <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
-        <!-- Drawer Content -->
-        <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-72 bg-white shadow-lg z-50 transform translate-x-full">
-            <div class="p-5">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-blue-800">Menu</h2>
-                    <button id="drawer-close" class="text-gray-600 hover:text-gray-900">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <!-- Hamburger Button (Mobile) -->
+                <div class="md:hidden flex items-center">
+                    <button id="drawer-toggle" class="text-gray-700 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m4 6h16"></path>
                         </svg>
                     </button>
                 </div>
-                <nav class="flex flex-col space-y-4">
-                    <a href="#beranda" data-target="beranda" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Beranda</a>
-                    <a href="#tentang" data-target="tentang" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Tentang Jurnal</a>
-                    <a href="#arsip" data-target="arsip" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Arsip</a>
-                    <a href="#kirim" data-target="kirim" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Kirim Naskah</a>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer (V12) -->
+        <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-64 bg-white shadow-xl z-50 transform drawer-closed md:hidden">
+            <div class="p-5">
+                <button id="drawer-close" class="absolute top-4 right-4 text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <nav class="flex flex-col space-y-4 mt-8">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Arsip</a>
+                    <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Kirim Naskah</a>
                     
-                    <div class="pt-4 border-t border-gray-200 space-y-3">
-                         <a href="#login" data-target="login" id="auth-link-mobile" class="mobile-nav-link block w-full text-center btn-primary text-base">Masuk / Daftar</a>
-                         <a href="#" id="logout-btn-mobile" class="mobile-nav-link hidden block w-full text-center text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-base">Keluar</a>
+                    <!-- Tombol Auth Mobile -->
+                    <div id="auth-buttons-mobile" class="pt-4 border-t">
+                        <button id="auth-nav-button-mobile" data-target="auth-page" class="spa-nav-link mobile-nav-link w-full text-left bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e]">
+                            Masuk / Daftar
+                        </button>
+                        <button id="logout-button-mobile" class="hidden w-full text-left bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 mt-2">
+                            Keluar
+                        </button>
                     </div>
                 </nav>
             </div>
         </div>
-        <!-- ===== AKHIR DARI HEADER BARU & DRAWER ===== -->
+    </header>
 
+    <!-- Konten Utama (SPA) -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Halaman Konten (Akan ditampilkan satu per satu) -->
 
-        <main class="flex-grow">
-            
-            <!-- ===== BERANDA SECTION (DESAIN LANDING PAGE BARU) ===== -->
-            <section id="beranda" class="content-section">
+        <!-- 1. Beranda (Landing Page - V14) -->
+        <section id="beranda" class="spa-content">
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-r from-[#063c7c] to-[#0a5a9e] text-white rounded-lg shadow-xl p-8 md:p-16 text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-extrabold mb-4">KAFAEdu: Journal of Education and Pedagogy</h2>
+                <p class="text-xl md:text-2xl font-light mb-8">Illuminating Minds through Educational Insight</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button data-target="kirim-naskah" class="spa-nav-link bg-white text-[#063c7c] font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
+                        Kirim Naskah Sekarang
+                    </button>
+                    <button data-target="arsip" class="spa-nav-link bg-transparent border-2 border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white hover:text-[#063c7c] transition-all duration-300">
+                        Jelajahi Arsip
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fokus & Ruang Lingkup -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Fokus & Ruang Lingkup</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <!-- Item 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Basic and Primary Education</h4>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m11.13 6.06L17 11M3 5a2 2 0 012-2h1m8 0a2 2 0 012 2v8m-1 4H4a2 2 0 01-2-2V7a2 2 0 012-2h4"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Indonesian language and literature</h4>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Civic and Character Education</h4>
+                    </div>
+                    <!-- Item 4 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">History of Education and Social Studies</h4>
+                    </div>
+                    <!-- Item 5 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4 12H9m-3 0H3m0-3h6m0 0h6m6 0h-3m-3 0h-3m-3 0H3m0 0h3m0-3h3m0 0h3m0 0h3m0 0h3"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Literacy and Learning Innovation</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terbitan Terkini -->
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-12">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Terbitan Terkini</h3>
+                <div class="space-y-4">
+                    <!-- Artikel 1 -->
+                    <div class="border-b pb-4">
+                        <a href="#" class="text-lg font-semibold text-[#063c7c] hover:underline">Judul Artikel Jurnal Contoh Pertama yang Menarik</a>
+                        <p class="text-sm text-gray-600 mt-1">Nama Penulis 1, Nama Penulis 2</p>
+                        <p class="text-gray-700 mt-2 text-sm leading-relaxed">Abstrak singkat... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel risus nec libero finibus dapibus.</p>
+                    </div>
+                    <!-- Artikel 2 -->
+                    <div class="border-b pb-4">
+                        <a href="#" class="text-lg font-semibold text-[#063c7c] hover:underline">Analisis Inovasi Pembelajaran di Era Digital</a>
+                        <p class="text-sm text-gray-600 mt-1">Nama Penulis 3</p>
+                        <p class="text-gray-700 mt-2 text-sm leading-relaxed">Abstrak singkat... Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proses Publikasi (V14) -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Proses Publikasi Kami</h3>
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <!-- Step 1 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Siapkan & Kirim Naskah</h4>
+                        <p class="text-gray-600 text-sm">Penulis menyiapkan naskah sesuai pedoman dan mengirimkannya melalui sistem kami.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:block text-gray-400 text-3xl">→</div>
+                    <!-- Step 2 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Peer Review</h4>
+                        <p class="text-gray-600 text-sm">Naskah akan ditinjau oleh mitra bestari (reviewer) secara *double-blind*.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:block text-gray-400 text-3xl">→</div>
+                    <!-- Step 3 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Publikasi</h4>
+                        <p class="text-gray-600 text-sm">Setelah revisi dan penerimaan, naskah akan di-*layout* dan diterbitkan secara *online*.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimoni (V7) -->
+            <div class="bg-gray-50 rounded-lg shadow-inner p-6 md:p-8 mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Apa Kata Komunitas Kami?</h3>
+                <div id="testimonials-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Testimoni akan dimuat di sini oleh JavaScript -->
+                    <div class="text-center text-gray-500">Memuat testimoni...</div>
+                </div>
+            </div>
+
+            <!-- Final CTA (V16) -->
+            <div class="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Siap Berkontribusi untuk Pendidikan?</h3>
+                <p class="text-gray-600 mb-6 max-w-lg mx-auto">Kami mengundang para peneliti, akademisi, dan praktisi untuk membagikan wawasan dan temuan Anda melalui KAFAEdu.</p>
+                <button type="button" data-target="kirim-naskah" class="spa-nav-link text-lg font-semibold px-8 py-3 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 bg-[#102770] text-[#ffeba7] hover:bg-[#ffeba7] hover:text-[#102770]">
+                    Mulai Kirim Naskah Sekarang
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. Tentang Jurnal -->
+        <section id="tentang" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Tentang Jurnal</h2>
                 
-                <!-- 1. Hero Section -->
-                <div class="w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white shadow-xl relative overflow-hidden">
-                    <div class="container mx-auto px-6 py-24 text-center">
-                        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Illuminating Minds through Educational Insight</h2>
-                        <p class="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto">Jurnal Akses Terbuka untuk Pendidikan dan Pedagogi Inovatif.</p>
-                        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                            <!-- Tombol CTA ini perlu ditambahkan ke listener navigasi -->
-                            <a href="#kirim" data-target="kirim" class="spa-nav-link bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg text-lg shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105 duration-300">
-                                Kirim Naskah
-                            </a>
-                            <a href="#arsip" data-target="arsip" class="spa-nav-link border-2 border-white text-white font-semibold px-8 py-3 rounded-lg text-lg hover:bg-white hover:text-blue-700 transition-all duration-300">
-                                Jelajahi Arsip
-                            </a>
-                        </div>
-                    </div>
+                <div class="prose max-w-none text-gray-700">
+                    <p><strong>KAFAEdu: Journal of Education and Pedagogy</strong> adalah jurnal ilmiah yang didedikasikan untuk kemajuan pengetahuan di bidang pendidikan. Kami menyediakan platform bagi para peneliti, akademisi, dan praktisi untuk mempublikasikan temuan, inovasi, dan analisis kritis mereka.</p>
+                    <p>Email: <strong class="text-gray-900">redaksi.kafaedu@gmail.com</strong><br>
+                    Website: <strong class="text-gray-900">https://edu.kafaedu.org</strong></p>
+
+                    <h4 class="text-xl font-bold text-gray-800 mt-8 mb-4">Fokus & Ruang Lingkup</h4>
+                    <p>Jurnal ini berfokus pada publikasi artikel penelitian asli dan artikel ulasan (review) berkualitas tinggi dalam bidang-bidang berikut:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>Basic and Primary Education (Pendidikan Dasar dan Sekolah Dasar)</li>
+                        <li>Indonesian language and literature education (Pendidikan Bahasa dan Sastra Indonesia)</li>
+                        <li>Civic and Character Education (Pendidikan Pancasila, Kewarganegaraan, dan Karakter)</li>
+                        <li>History of Education and Social Studies (Pendidikan Sejarah dan Ilmu Sosial)</li>
+                        <li>Literacy and Learning Innovation (Literasi dan Inovasi Pembelajaran)</li>
+                    </ul>
                 </div>
 
-                <!-- 2. Fokus & Ruang Lingkup (Visual) -->
-                <div class="py-20 bg-white">
-                    <div class="container mx-auto px-6">
-                        <h3 class="text-3xl font-bold text-center text-gray-800 mb-16">Fokus & Ruang Lingkup</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
-                            
-                            <!-- Item 1 -->
-                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
-                                </div>
-                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Pendidikan Dasar</h4>
-                                <p class="text-sm text-gray-600">Basic and Primary Education</p>
-                            </div>
-                            <!-- Item 2 -->
-                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
-                                </div>
-                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Bahasa & Sastra</h4>
-                                <p class="text-sm text-gray-600">Indonesian language and literature</p>
-                            </div>
-                            <!-- Item 3 -->
-                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
-                                </div>
-                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Pendidikan Karakter</h4>
-                                <p class="text-sm text-gray-600">Civic and Character Education</p>
-                            </div>
-                            <!-- Item 4 -->
-                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
-                                </div>
-                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Sejarah & Sosial</h4>
-                                <p class="text-sm text-gray-600">History of Education and Social Studies</p>
-                            </div>
-                            <!-- Item 5 -->
-                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
-                                </div>
-                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Literasi & Inovasi</h4>
-                                <p class="text-sm text-gray-600">Literacy and Learning Innovation</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Terbitan Terkini -->
-                <div class="py-20 bg-gray-50">
-                    <div class="container mx-auto px-6">
-                        <h3 class="text-3xl font-bold text-center text-gray-800 mb-16">Terbitan Terkini</h3>
-                        <div class="space-y-6 max-w-4xl mx-auto">
-                            <article class="soft-card flex flex-col md:flex-row items-center gap-6">
-                                <div class="flex-grow">
-                                    <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Dasar</span>
-                                    <h4 class="mt-2 text-xl font-semibold text-blue-700 hover:underline">Inovasi Pembelajaran Berbasis Proyek untuk Meningkatkan Keterampilan Literasi Siswa Sekolah Dasar</h4>
-                                    <p class="text-sm text-gray-600 mt-1">Ahmad Subagja, Siti Mariam</p>
-                                </div>
-                                <a href="#" class="flex-shrink-0 text-sm text-blue-500 hover:text-blue-700 font-medium md:ml-6">Baca Selengkapnya →</a>
-                            </article>
-                            <article class="soft-card flex flex-col md:flex-row items-center gap-6">
-                                <div class="flex-grow">
-                                    <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Karakter</span>
-                                    <h4 class="mt-2 text-xl font-semibold text-blue-700 hover:underline">Peran Pendidikan Karakter dalam Membentuk Warga Negara yang Bertanggung Jawab</h4>
-                                    <p class="text-sm text-gray-600 mt-1">Dewi Lestari, Budi Santoso</p>
-                                </div>
-                                <a href="#" class="flex-shrink-0 text-sm text-blue-500 hover:text-blue-700 font-medium md:ml-6">Baca Selengkapnya →</a>
-                            </article>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 4. Proses Publikasi (Baru) -->
-                <div class="py-20 bg-white">
-                    <div class="container mx-auto px-6 text-center">
-                        <h3 class="text-3xl font-bold text-gray-800 mb-16">Proses Publikasi Sederhana</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-                            <!-- Step 1 -->
-                            <div class="flex flex-col items-center">
-                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">1</div>
-                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Siapkan Naskah</h4>
-                                <p class="text-gray-600 text-sm">Gunakan templat kami dan pastikan artikel Anda selaras dengan fokus & ruang lingkup jurnal.</p>
-                            </div>
-                            <!-- Step 2 -->
-                            <div class="flex flex-col items-center">
-                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">2</div>
-                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Review Sejawat</h4>
-                                <p class="text-gray-600 text-sm">Naskah Anda akan melalui proses *double-blind review* oleh para ahli di bidangnya.</p>
-                            </div>
-                            <!-- Step 3 -->
-                            <div class="flex flex-col items-center">
-                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">3</div>
-                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Publikasi Daring</h4>
-                                <p class="text-gray-600 text-sm">Setelah diterima, artikel Anda akan dipublikasikan secara daring dan dapat diakses secara bebas.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. TESTIMONI SECTION (Dipindahkan ke sini) -->
-                <div class="py-20 bg-blue-50">
-                    <div class="container mx-auto px-6">
-                        <h3 class="text-3xl font-bold text-gray-800 text-center mb-16">Apa Kata Komunitas Kami?</h3>
-                        <div id="testimonials-list" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                            <!-- Testimonial items loaded here by JS -->
-                            <div class="col-span-1 md:col-span-3 text-center text-gray-500">Memuat testimoni...</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 6. Final CTA (Baru) -->
-                <div class="py-20 bg-white">
-                    <div class="container mx-auto px-6 text-center max-w-3xl">
-                        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Siap Berkontribusi untuk Pendidikan?</h2>
-                        <p class="text-xl text-gray-600 mb-8">Kirimkan naskah penelitian terbaik Anda dan jadilah bagian dari komunitas KAFAEdu.</p>
-                        <a href="#kirim" data-target="kirim" class="spa-nav-link btn-primary text-lg px-10 py-4 shadow-blue-500/50 transform hover:scale-105 transition-transform duration-300">
-                            Mulai Kirim Naskah Sekarang
-                        </a>
-                    </div>
-                </div>
-
-            </section>
-            
-            <!-- TENTANG JURNAL SECTION -->
-            <section id="tentang" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <div class="soft-card">
-                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Tentang Jurnal</h2>
-                    <div class="space-y-6 text-gray-700">
-                        <p><strong>KAFAEdu: Journal of Education and Pedagogy</strong> adalah jurnal ilmiah yang ditinjau oleh rekan sejawat (peer-reviewed) dan diterbitkan secara berkala. Misi kami adalah untuk menyebarluaskan penelitian berkualitas tinggi dan mempromosikan wacana ilmiah di antara para peneliti dan praktisi di bidang pendidikan.</p>
+                <!-- Tim Editorial (V17) -->
+                <div class="mt-12 pt-8 border-t">
+                    <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Tim Editorial Kami</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                         
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Fokus & Ruang Lingkup</h3>
-                            <p>Jurnal ini menerima naskah asli dalam bidang-bidang berikut, namun tidak terbatas pada:</p>
-                            <ul class="list-disc list-inside space-y-2 mt-4 pl-4">
-                                <li><strong>Pendidikan Dasar dan Dasar (Basic and Primary Education):</strong> Penelitian tentang kurikulum, metode pengajaran, evaluasi, dan manajemen pendidikan di tingkat dasar.</li>
-                                <li><strong>Pendidikan bahasa dan sastra Indonesia (Indonesian language and literature education):</strong> Studi tentang pengajaran bahasa, sastra, dan keterampilan berbahasa Indonesia.</li>
-                                <li><strong>Pendidikan Kewarganegaraan dan Karakter (Civic and Character Education):</strong> Artikel yang membahas pengembangan moral, etika, dan kesadaran berwarga negara.</li>
-                                <li><strong>Sejarah Pendidikan dan Ilmu Pengetahuan Sosial (History of Education and Social Studies):</strong> Analisis historis dan sosial tentang kebijakan dan praktik pendidikan.</li>
-                                <li><strong>Literasi dan Inovasi Pembelajaran (Literacy and Learning Innovation):</strong> Penelitian tentang pengembangan literasi, teknologi pendidikan, dan model pembelajaran inovatif.</li>
-                            </ul>
+                        <!-- Anggota Tim 1 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 1" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Dr. Nama Editor, M.Pd.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Editor-in-Chief</p>
+                            <p class="text-xs text-gray-500 mt-1">Universitas Kemerdekaan</p>
                         </div>
+                        
+                        <!-- Anggota Tim 2 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 2" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Prof. Nama Reviewer, Ph.D.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Managing Editor</p>
+                            <p class="text-xs text-gray-500 mt-1">Institut Teknologi Pendidikan</p>
+                        </div>
+                        
+                        <!-- Anggota Tim 3 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 3" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Nama Anggota, S.Pd.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Editorial Board Member</p>
+                            <p class="text-xs text-gray-500 mt-1">Praktisi Pendidikan</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Proses Peer Review</h3>
-                            <p>Semua naskah yang dikirimkan akan melalui proses peninjauan 'double-blind' oleh setidaknya dua peninjau ahli di bidangnya. Keputusan akhir publikasi dibuat oleh Dewan Redaksi, memastikan integritas dan kualitas publikasi.</p>
+        <!-- 3. Arsip -->
+        <section id="arsip" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Arsip Publikasi</h2>
+                
+                <!-- Filter / Search Bar -->
+                <div class="mb-6">
+                    <input type="text" id="search-archive" placeholder="Cari artikel berdasarkan judul atau penulis..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#063c7c]">
+                </div>
+
+                <!-- Daftar Arsip -->
+                <div id="archive-list" class="space-y-6">
+                    <!-- Item 1 -->
+                    <div class="bg-gray-50 p-5 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="text-xl font-semibold text-[#063c7c] mb-1">Volume 1, Nomor 1 (Tahun 2024)</h4>
+                        <p class="text-sm text-gray-500 mb-4">Diterbitkan: Januari 2024</p>
+                        <div class="space-y-3">
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Judul Artikel Jurnal Contoh Pertama</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 1, Nama Penulis 2 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Analisis Inovasi Pembelajaran</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 3 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="bg-gray-50 p-5 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="text-xl font-semibold text-[#063c7c] mb-1">Volume 1, Nomor 2 (Tahun 2024)</h4>
+                        <p class="text-sm text-gray-500 mb-4">Diterbitkan: Juli 2024</p>
+                        <div class="space-y-3">
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Studi Karakter Pendidikan Kewarganegaraan</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 4 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- ARSIP SECTION -->
-            <section id="arsip" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <div class="soft-card">
-                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Arsip Jurnal</h2>
-                    <p class="text-gray-700 mb-6">Jelajahi terbitan-terbitan kami sebelumnya. Semua artikel tersedia secara bebas untuk dibaca dan diunduh.</p>
+        <!-- 4. Kirim Naskah (Submission Wizard - V18) -->
+        <section id="kirim-naskah" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Kirim Naskah Anda</h2>
+
+                <!-- Asisten Ide Penulisan (V6) -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-[#063c7c] mb-4">✨ Asisten Ide Penulisan (Gemini)</h3>
+                    <p class="text-gray-700 mb-4">Tidak yakin apakah ide Anda sesuai? Masukkan draf judul atau topik Anda untuk mendapatkan umpan balik instan mengenai keselarasan dengan Fokus & Ruang Lingkup kami.</p>
                     
-                    <div class="space-y-4">
-                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
-                            <h3 class="text-lg font-semibold text-blue-700">Volume 2, Nomor 1 (2025) - Terkini</h3>
-                            <p class="text-sm text-gray-600">Terbit: Januari 2025</p>
+                    <div class="mb-4">
+                        <label for="idea-input" class="block text-sm font-medium text-gray-800 mb-2">Masukkan Ide / Draf Judul Anda:</label>
+                        <textarea id="idea-input" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#063c7c]" placeholder="Contoh: Penggunaan media interaktif untuk meningkatkan literasi di sekolah dasar..."></textarea>
+                    </div>
+                    <button id="analyze-idea-btn" class="bg-[#063c7c] text-white font-semibold px-5 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                        Periksa & Sarankan Ide
+                    </button>
+
+                    <!-- Area Hasil Gemini -->
+                    <div id="gemini-result-container" class="hidden mt-4">
+                        <div id="gemini-loading" class="text-center text-gray-600">
+                            <svg class="animate-spin h-5 w-5 text-[#063c7c] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Menganalisis...
                         </div>
-                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
-                            <h3 class="text-lg font-semibold text-blue-700">Volume 1, Nomor 2 (2024)</h3>
-                            <p class="text-sm text-gray-600">Terbit: Juli 2024</p>
+                        <div id="gemini-error" class="hidden text-red-600 bg-red-100 border border-red-300 p-3 rounded-lg"></div>
+                        <div id="gemini-result" class="prose prose-sm max-w-none bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+                    </div>
+                </div>
+
+                <!-- Pesan Peringatan Login -->
+                <div id="login-prompt" class="hidden text-center bg-yellow-50 border border-yellow-300 text-yellow-800 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">Anda Harus Masuk</h3>
+                    <p class="mb-4">Silakan <button data-target="auth-page" class="spa-nav-link text-[#063c7c] font-bold underline">Masuk</button> atau <button data-target="auth-page" data-mode="register" class="spa-nav-link text-[#063c7c] font-bold underline">Daftar</button> untuk memulai proses pengiriman naskah.</p>
+                </div>
+                
+                <!-- Submission Wizard (Hanya tampil jika sudah login) -->
+                <div id="submission-wizard" class="hidden">
+                    <!-- Stepper -->
+                    <nav class="flex border-b border-gray-200 mb-8">
+                        <button data-step="1" class="step-link active flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 1:</span> Pedoman
+                        </button>
+                        <button data-step="2" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 2:</span> Info Penulis
+                        </button>
+                        <button data-step="3" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 3:</span> Info Naskah
+                        </button>
+                        <button data-step="4" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 4:</span> Unggah File
+                        </button>
+                        <button data-step="5" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 5:</span> Konfirmasi
+                        </button>
+                    </nav>
+
+                    <!-- Konten Step -->
+                    <div id="step-content-container">
+                        <!-- Step 1: Pedoman -->
+                        <div id="step-1" class="step-content active">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Pedoman Penulisan</h4>
+                            <div class="prose max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200 h-64 overflow-y-auto">
+                                <p>Pastikan naskah Anda memenuhi kriteria berikut:</p>
+                                <ul>
+                                    <li>Naskah asli, belum pernah dipublikasikan di tempat lain.</li>
+                                    <li>Format file dalam bentuk Microsoft Word (.doc atau .docx).</li>
+                                    <li>Ditulis sesuai dengan templat KAFAEdu (unduh <a href="#" class="text-blue-600 underline">di sini</a>).</li>
+                                    <li>Menggunakan sitasi gaya APA Edisi ke-7.</li>
+                                    <li>Panjang artikel antara 4000-7000 kata.</li>
+                                    <li>Abstrak (Bahasa Indonesia & Inggris) masing-masing 150-250 kata.</li>
+                                </ul>
+                                <p>Dengan melanjutkan, Anda menyetujui semua pedoman dan etika publikasi yang berlaku di KAFAEdu.</p>
+                            </div>
+                            <div class="mt-4">
+                                <input type="checkbox" id="agree-guidelines" class="mr-2">
+                                <label for="agree-guidelines" class="text-gray-700">Saya telah membaca dan menyetujui semua pedoman penulisan.</label>
+                            </div>
+                            <div class="text-right mt-6">
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Selanjutnya →
+                                </button>
+                            </div>
                         </div>
-                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors duration-200">
-                            <h3 class="text-lg font-semibold text-blue-700">Volume 1, Nomor 1 (2024)</h3>
-                            <p class="text-sm text-gray-600">Terbit: Januari 2024</p>
+
+                        <!-- Step 2: Info Penulis -->
+                        <div id="step-2" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Informasi Penulis (Korespondensi)</h4>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="author-name" class="block text-sm font-medium text-gray-700">Nama Lengkap (dengan gelar)</label>
+                                        <input type="text" id="author-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                    </div>
+                                    <div>
+                                        <label for="author-email" class="block text-sm font-medium text-gray-700">Email</label>
+                                        <input type="email" id="author-email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="author-affiliation" class="block text-sm font-medium text-gray-700">Afiliasi / Institusi</label>
+                                    <input type="text" id="author-affiliation" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                                <div>
+                                    <label for="co-authors" class="block text-sm font-medium text-gray-700">Penulis Pendamping (jika ada, pisahkan dengan koma)</label>
+                                    <input type="text" id="co-authors" placeholder="Contoh: Dr. Budi, M.Pd., Prof. Citra, Ph.D." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Info Naskah -->
+                        <div id="step-3" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Informasi Naskah</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="manuscript-title" class="block text-sm font-medium text-gray-700">Judul Naskah</label>
+                                    <input type="text" id="manuscript-title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                                <div>
+                                    <label for="manuscript-abstract" class="block text-sm font-medium text-gray-700">Abstrak (Bahasa Indonesia)</label>
+                                    <textarea id="manuscript-abstract" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]"></textarea>
+                                </div>
+                                <div>
+                                    <label for="manuscript-keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
+                                    <input type="text" id="manuscript-keywords" placeholder="Contoh: literasi, inovasi, sekolah dasar" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Unggah File -->
+                        <div id="step-4" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Unggah File Naskah</h4>
+                            <p class="text-sm text-gray-600 mb-4">Unggah file naskah lengkap Anda dalam format .doc atau .docx. Pastikan file telah dianonimkan (tidak ada nama penulis) untuk proses *double-blind review*.</p>
+                            
+                            <div id="drop-zone" class="flex justify-center items-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                <div class="text-gray-500">
+                                    <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 16v1a2 2 0 01-2 2H6a2 2 0 01-2-2v-1m16-4l-4-4-4 4m0 0v12"></path></svg>
+                                    <p class="font-semibold">Seret & Lepas file di sini</p>
+                                    <p class="text-sm">atau klik untuk memilih file</p>
+                                    <p class="text-xs mt-2">(Hanya .doc, .docx)</p>
+                                </div>
+                                <input type="file" id="file-upload" class="hidden" accept=".doc,.docx">
+                            </div>
+                            <div id="file-upload-info" class="hidden mt-4 text-center text-green-700 font-medium"></div>
+
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Konfirmasi -->
+                        <div id="step-5" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Pengiriman</h4>
+                            <p class="text-gray-700 mb-6">Harap tinjau kembali semua informasi yang telah Anda masukkan sebelum mengirimkan naskah.</p>
+                            
+                            <!-- Ringkasan (Opsional, bisa diisi JS) -->
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-2">
+                                <p class="text-sm text-gray-600"><strong>Judul:</strong> <span id="summary-title" class="text-gray-800">...</span></p>
+                                <p class="text-sm text-gray-600"><strong>Penulis:</strong> <span id="summary-author" class="text-gray-800">...</span></p>
+                                <p class="text-sm text-gray-600"><strong>File:</strong> <span id="summary-file" class="text-gray-800">...</span></p>
+                            </div>
+
+                            <div class="mt-4">
+                                <input type="checkbox" id="agree-final" class="mr-2">
+                                <label for="agree-final" class="text-gray-700">Saya menyatakan bahwa naskah ini adalah karya asli saya dan tidak sedang dalam pertimbangan di jurnal lain.</label>
+                            </div>
+
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button id="submit-manuscript" class="bg-green-600 text-white font-bold px-8 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    KIRIM NASKAH
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- KIRIM NASKAH SECTION -->
-            <section id="kirim" class="content-section hidden container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <div class="soft-card">
-                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 border-blue-500 pb-2">Kirim Naskah</h2>
-                    <div class="space-y-8 text-gray-700">
-                        
-                        <!-- PANDUAN PENULIS -->
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Panduan Penulis</h3>
-                            <p>Baca panduan berikut untuk memastikan naskah Anda memenuhi standar jurnal.</p>
-                            <ul class="list-disc list-inside space-y-2 mt-4 pl-4">
-                                <li>Naskah harus disiapkan sesuai dengan templat jurnal (unduh di sini).</li>
-                                <li>Panjang artikel antara 4.000 hingga 7.000 kata.</li>
-                                <li>Gunakan gaya sitasi APA (American Psychological Association) Edisi ke-7.</li>
-                                <li>Pastikan naskah telah melalui proses 'proofread' untuk tata bahasa dan ejaan.</li>
-                            </ul>
-                        </div>
+            </div>
+        </section>
 
-                        <!-- CARA PENGIRIMAN -->
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-3">Cara Pengiriman</h3>
-                            <p>Pengiriman naskah dilakukan secara daring. Jika Anda sudah terdaftar dan masuk, Anda dapat memulai pengiriman.</p>
-                            <button id="start-submission-btn" class="btn-primary px-6 py-3 mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed">Mulai Pengiriman Baru</button>
-                            <p id="submission-status" class="mt-2 text-sm text-red-600 hidden">Anda harus Masuk (Login) terlebih dahulu untuk dapat mengirimkan naskah.</p>
-                        </div>
-                        
-                        <!-- ASISTEN IDE PENULISAN (GEMINI LLM FEATURE) -->
-                        <div class="pt-8 border-t border-gray-200">
-                            <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                Asisten Ide Penulisan ✨
-                                <span class="text-sm font-normal text-blue-600 ml-3 bg-blue-100 px-3 py-1 rounded-full">Didukung oleh Gemini</span>
-                            </h3>
-                            <p class="mb-4">Gunakan asisten ini untuk memeriksa keselarasan ide penelitian Anda dengan fokus jurnal kami dan dapatkan saran judul yang konstruktif.</p>
-                            
-                            <textarea id="idea-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150" rows="4" placeholder="Masukkan ide topik atau draf judul Anda di sini (misalnya: Pengaruh AI terhadap literasi membaca siswa SD)."></textarea>
-                            
-                            <button id="generate-idea-btn" class="inline-flex items-center justify-center btn-primary mt-4">
-                                Periksa & Sarankan Ide
-                            </button>
+        <!-- 5. Halaman Auth (Login/Register 3D Flip - V11) -->
+        <!-- Bagian ini sengaja ditempatkan di luar container utama untuk tampilan full-height -->
+        <section id="auth-page" class="spa-content hidden">
+            <!-- HTML dari V11 (3D Flip Card) -->
+            <div class="section full-height">
+                <div class="container">
+                    <div class="row full-height justify-content-center">
+                        <div class="col-12 text-center align-self-center py-5">
+                            <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                                <!-- Tombol kembali ke Beranda -->
+                                <button data-target="beranda" class="spa-nav-link text-white font-semibold mb-4 hover:text-yellow-300 transition-colors duration-200">
+                                    ← Kembali ke Beranda
+                                </button>
 
-                            <div id="idea-loading" class="hidden mt-4 text-blue-700 font-medium flex items-center">
-                                <span class="animate-spin w-5 h-5 mr-3 border-2 border-current border-t-transparent rounded-full"></span> Sedang menganalisis ide...
-                            </div>
-                            
-                            <div id="idea-result" class="mt-4">
-                                <!-- LLM result will be displayed here -->
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <!-- LOGIN/REGISTER SECTION - 3D FLIP CARD (From User HTML/CSS) -->
-            <section id="auth-page" class="content-section hidden">
-                <!-- Konten di dalam section ini diambil langsung dari HTML user -->
-                <div class="section">
-                    <div class="container">
-                        <div class="row full-height justify-content-center" style="min-height: auto;"> <!-- Menghapus full-height agar pas -->
-                            <div class="col-12 text-center align-self-center py-5">
-                                <div class="section pb-5 pt-5 pt-sm-2 text-center">
-                                    <h6 class="mb-0 pb-3"><span>Log In </span><span>Sign Up</span></h6>
-                                    
-                                    <!-- Checkbox yang mengontrol flip -->
-                                    <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
-                                    <label for="reg-log"></label>
-                                    
-                                    <div class="card-3d-wrap mx-auto">
-                                        <div class="card-3d-wrapper">
-                                            
-                                            <!-- FRONT CARD (LOGIN) -->
-                                            <div class="card-front">
-                                                <div class="center-wrap">
-                                                    <div class="section text-center">
-                                                        <h4 class="mb-4 pb-3">Log In</h4>
-                                                        
-                                                        <!-- FORM LOGIN (Disesuaikan untuk Firebase) -->
-                                                        <form id="login-form">
-                                                            <div class="form-group">
-                                                                <input type="email" class="form-style" placeholder="Your Email" id="login-email" autocomplete="off" required>
-                                                                <i class="input-icon uil uil-at"></i>
-                                                            </div>  
-                                                            <div class="form-group mt-2">
-                                                                <input type="password" class="form-style" placeholder="Your Password" id="login-password" autocomplete="off" required>
-                                                                <i class="input-icon uil uil-lock-alt"></i>
-                                                            </div>
-                                                            <div id="login-message" class="auth-message"></div>
-                                                            <button type="submit" class="btn mt-4">submit</button>
-                                                            <p class="mb-0 mt-4 text-center"><a href="#0" class="link">Forgot your password?</a></p>
-                                                        </form>
-                                                        
+                                <h6 class="mb-0 pb-3"><span>Log In </span><span>Sign Up</span></h6>
+                                <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
+                                <label for="reg-log"></label>
+                                <div class="card-3d-wrap mx-auto">
+                                    <div class="card-3d-wrapper">
+                                        <!-- Card Depan (Login) -->
+                                        <div class="card-front">
+                                            <div class="center-wrap">
+                                                <form id="login-form" class="section text-center">
+                                                    <h4 class="mb-4 pb-3">Log In</h4>
+                                                    <div class="form-group">
+                                                        <input type="email" name="logemail" class="form-style" placeholder="Your Email" id="login-email" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-at"></i>
                                                     </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- BACK CARD (REGISTER) -->
-                                            <div class="card-back">
-                                                <div class="center-wrap">
-                                                    <div class="section text-center">
-                                                        <h4 class="mb-4 pb-3">Sign Up</h4>
-                                                        
-                                                        <!-- FORM REGISTER (Disesuaikan untuk Firebase) -->
-                                                        <form id="register-form">
-                                                            <div class="form-group mt-2">
-                                                                <input type="email" class="form-style" placeholder="Your Email" id="register-email" autocomplete="off" required>
-                                                                <i class="input-icon uil uil-at"></i>
-                                                            </div>  
-                                                            <div class="form-group mt-2">
-                                                                <input type="password" class="form-style" placeholder="Your Password" id="register-password" minlength="6" autocomplete="off" required>
-                                                                <i class="input-icon uil uil-lock-alt"></i>
-                                                            </div>
-                                                            <div id="register-message" class="auth-message"></div>
-                                                            <button type="submit" class="btn mt-4">submit</button>
-                                                        </form>
-                                                        
+                                                    <div class="form-group mt-2">
+                                                        <input type="password" name="logpass" class="form-style" placeholder="Your Password" id="login-password" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-lock-alt"></i>
                                                     </div>
-                                                </div>
+                                                    <button type="submit" class="btn mt-4">submit</button>
+                                                    <p class="mb-0 mt-4 text-center"><a href="#0" class="link">Forgot your password?</a></p>
+                                                </form>
                                             </div>
-                                            
+                                        </div>
+                                        <!-- Card Belakang (Register) -->
+                                        <div class="card-back">
+                                            <div class="center-wrap">
+                                                <form id="register-form" class="section text-center">
+                                                    <h4 class="mb-4 pb-3">Sign Up</h4>
+                                                    <div class="form-group">
+                                                        <input type="text" name="logname" class="form-style" placeholder="Your Full Name" id="register-name" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-user"></i>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <input type="email" name="logemail" class="form-style" placeholder="Your Email" id="register-email" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-at"></i>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <input type="password" name="logpass" class="form-style" placeholder="Your Password" id="register-password" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-lock-alt"></i>
+                                                    </div>
+                                                    <button type="submit" class="btn mt-4">submit</button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -749,492 +951,547 @@
                         </div>
                     </div>
                 </div>
-            </section>
-
-        </main>
-
-        <footer class="bg-blue-900 text-blue-100 py-8">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h3 class="text-xl font-semibold">KAFAEdu: Journal of Education and Pedagogy</h3>
-                <p class="mt-2 text-sm">Email Redaksi: <a href="mailto:redaksi.kafaedu@gmail.com" class="underline hover:text-white">redaksi.kafaedu@gmail.com</a></p>
-                <p class="mt-1 text-sm">Website: <a href="https://edu.kafaedu.org" class="underline hover:text-white">https://edu.kafaedu.org</a></p>
-                <p class="mt-4 text-xs opacity-70">&copy; 2025 KAFAEdu. All rights reserved.</p>
             </div>
-        </footer>
+        </section>
 
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#063c7c] text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <p>&copy; 2024 KAFAEdu: Journal of Education and Pedagogy. All rights reserved.</p>
+            <p class="text-sm text-blue-200 mt-1">Email: redaksi.kafaedu@gmail.com</p>
+        </div>
+    </footer>
+
+    <!-- Modal Notifikasi -->
+    <div id="notification-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close" class="bg-[#063c7c] text-white px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                Tutup
+            </button>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- General UI and Navigation Setup ---
-            const mainHeader = document.getElementById('main-header');
-            const navLinks = document.querySelectorAll('#main-nav a.nav-link');
-            const contentSections = document.querySelectorAll('.content-section');
-            const authLink = document.getElementById('auth-link');
-            const logoutBtn = document.getElementById('logout-btn');
-            const startSubmissionBtn = document.getElementById('start-submission-btn');
-            const submissionStatus = document.getElementById('submission-status');
 
-            // --- Auth Flip Card Elements (Desain 3D Flip) ---
-            const regLogCheckbox = document.getElementById('reg-log');
-            const loginMessage = document.getElementById('login-message');
-            const registerMessage = document.getElementById('register-message');
-            
-            // --- Mobile Drawer Elements (BARU) ---
-            const drawerToggle = document.getElementById('drawer-toggle');
-            const drawerClose = document.getElementById('drawer-close');
-            const mobileDrawer = document.getElementById('mobile-drawer');
-            const drawerOverlay = document.getElementById('drawer-overlay');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-            const authLinkMobile = document.getElementById('auth-link-mobile');
-            const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+    <!-- JavaScript Utama Aplikasi -->
+    <script type="module">
+        // Ambil layanan Firebase dari global scope
+        const {
+            db, auth, doc, getDoc, setDoc, onSnapshot, collection, query, getDocs, addDoc,
+            signInAnonymously, signInWithCustomToken, onAuthStateChanged,
+            createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, appId
+        } = window.FirebaseServices;
 
-            // --- PERBAIKAN: Mengumpulkan semua tautan navigasi yang berfungsi ---
-            // Termasuk link desktop, link mobile, tombol auth, DAN Tombol CTA Landing Page
-            const allNavTargets = [
-                ...navLinks, 
-                ...mobileNavLinks,
-                authLink, 
-                authLinkMobile,
-                ...document.querySelectorAll('.link'), // Untuk "Forgot password"
-                ...document.querySelectorAll('.spa-nav-link') // Untuk Tombol CTA Landing Page
-            ]; 
+        // === State Aplikasi ===
+        let currentUserId = null;
+        let currentUserEmail = null;
+        let currentWizardStep = 1;
 
-            function updateContent(targetId) {
-                // Sembunyikan semua section
-                contentSections.forEach(section => {
-                    section.classList.add('hidden');
-                });
+        // === Elemen UI ===
+        const contentPages = document.querySelectorAll('.spa-content');
+        const allNavTargets = document.querySelectorAll('.spa-nav-link');
+        const mainNavLinks = document.querySelectorAll('header nav a.spa-nav-link, #mobile-drawer a.spa-nav-link');
+        
+        // Auth
+        const authNavButton = document.getElementById('auth-nav-button');
+        const logoutButton = document.getElementById('logout-button');
+        const authNavButtonMobile = document.getElementById('auth-nav-button-mobile');
+        const logoutButtonMobile = document.getElementById('logout-button-mobile');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authCheckbox = document.getElementById('reg-log');
 
-                // Tampilkan section yang dituju
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) {
-                    targetSection.classList.remove('hidden');
-                }
+        // Mobile Drawer (V12)
+        const drawerToggle = document.getElementById('drawer-toggle');
+        const drawerClose = document.getElementById('drawer-close');
+        const mobileDrawer = document.getElementById('mobile-drawer');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
 
-                // Kelola status aktif untuk tautan utama (hanya di desktop nav)
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                });
-                const activeLink = document.querySelector(`#main-nav [data-target="${targetId}"]`);
-                if (activeLink && activeLink.classList.contains('nav-link')) {
-                    activeLink.classList.add('active');
-                }
-            }
-            
-            // --- Logika untuk Mobile Drawer (BARU) ---
-            function openDrawer() {
-                mobileDrawer.classList.remove('translate-x-full');
-                drawerOverlay.classList.remove('hidden');
-                drawerOverlay.classList.add('opacity-100');
-            }
-            
-            function closeDrawer() {
-                mobileDrawer.classList.add('translate-x-full');
-                drawerOverlay.classList.add('hidden');
-                drawerOverlay.classList.remove('opacity-100');
-            }
-            
-            if (drawerToggle) drawerToggle.addEventListener('click', openDrawer);
-            if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
-            if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+        // Notifikasi
+        const notificationModal = document.getElementById('notification-modal');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationMessage = document.getElementById('notification-message');
+        const notificationClose = document.getElementById('notification-close');
 
+        // Testimoni
+        const testimonialsContainer = document.getElementById('testimonials-container');
 
-            // --- Listener untuk Checkbox Flip Card ---
-            if (regLogCheckbox) {
-                regLogCheckbox.addEventListener('change', () => {
-                    if(loginMessage) loginMessage.textContent = '';
-                    if(registerMessage) registerMessage.textContent = '';
-                });
-            }
+        // Asisten Ide (Gemini)
+        const analyzeIdeaBtn = document.getElementById('analyze-idea-btn');
+        const ideaInput = document.getElementById('idea-input');
+        const geminiResultContainer = document.getElementById('gemini-result-container');
+        const geminiLoading = document.getElementById('gemini-loading');
+        const geminiError = document.getElementById('gemini-error');
+        const geminiResult = document.getElementById('gemini-result');
 
-            // --- Listener untuk semua tautan navigasi ---
-            allNavTargets.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    // Cek jika link memiliki data-target (bukan link eksternal)
-                    if (this.dataset.target) {
-                        e.preventDefault();
-                        const targetId = this.dataset.target;
+        // Submission Wizard (V18)
+        const loginPrompt = document.getElementById('login-prompt');
+        const submissionWizard = document.getElementById('submission-wizard');
+        const stepLinks = document.querySelectorAll('.step-link');
+        const stepContents = document.querySelectorAll('.step-content');
+        const wizardNextButtons = document.querySelectorAll('.wizard-next');
+        const wizardPrevButtons = document.querySelectorAll('.wizard-prev');
+        const agreeGuidelines = document.getElementById('agree-guidelines');
+        const agreeFinal = document.getElementById('agree-final');
+        const submitManuscriptBtn = document.getElementById('submit-manuscript');
+        const dropZone = document.getElementById('drop-zone');
+        const fileUpload = document.getElementById('file-upload');
+        const fileUploadInfo = document.getElementById('file-upload-info');
+        let uploadedFile = null;
 
-                        // Navigasi Auth (Login/Register)
-                        if (targetId === 'login' || targetId === 'register') {
-                            updateContent('auth-page'); // Tampilkan halaman auth
-                            
-                            // Kontrol checkbox untuk flip
-                            if (regLogCheckbox) {
-                                regLogCheckbox.checked = (targetId === 'register');
-                            }
-                            
-                            // Bersihkan pesan error
-                            if(loginMessage) loginMessage.textContent = '';
-                            if(registerMessage) registerMessage.textContent = '';
-                            
-                        } 
-                        // Navigasi SPA (Internal)
-                        else {
-                            updateContent(targetId);
-                        }
-                        
-                        // Selalu tutup drawer setelah klik
-                        closeDrawer();
-                        
-                        // Jangan scroll ke atas jika targetnya adalah auth page
-                        if (targetId !== 'login' && targetId !== 'register') {
-                            window.scrollTo(0, 0);
-                        }
-                    } 
-                    // Navigasi logout
-                    else if (this.id.startsWith('logout-btn')) {
-                         e.preventDefault();
-                         handleLogout(); // Panggil fungsi logout
-                         updateContent('beranda');
-                         closeDrawer();
-                         window.scrollTo(0, 0);
-                    }
-                    // Untuk link lain (misal "Forgot Password"), biarkan default
-                });
+        // === Fungsi Notifikasi ===
+        function showNotification(title, message) {
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            notificationModal.classList.remove('hidden');
+        }
+        notificationClose.addEventListener('click', () => {
+            notificationModal.classList.add('hidden');
+        });
+
+        // === Fungsi Navigasi SPA ===
+        function updateContent(targetId, mode = 'login') {
+            // Sembunyikan semua halaman
+            contentPages.forEach(page => {
+                page.classList.add('hidden');
             });
-            
-            updateContent('beranda');
 
-            // --- FIREBASE AUTHENTICATION & FIREBASE INIT ---
-            let auth = null;
-            let db = null;
-            let currentUserId = null;
-            let isAuthenticated = false;
-
-            const firebaseInit = async () => {
-                const { 
-                    auth: f_auth, 
-                    db: f_db, 
-                    signInAnonymously: f_signInAnonymously, 
-                    signInWithCustomToken: f_signInWithCustomToken, 
-                    onAuthStateChanged: f_onAuthStateChanged, 
-                    initialAuthToken
-                } = window.FirebaseServices;
-
-                if (!f_auth || !f_db) {
-                    return;
-                }
-
-                auth = f_auth;
-                db = f_db;
-
-                // Initial Authentication Check
-                try {
-                    if (initialAuthToken) {
-                        await f_signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await f_signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    try {
-                        await f_signInAnonymously(auth);
-                    } catch (e) {
-                    }
-                }
-
-                // Auth State Listener
-                f_onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        currentUserId = user.uid;
-                        isAuthenticated = !user.isAnonymous; 
-
-                        // Update UI based on authentication status
-                        if (isAuthenticated) {
-                            // Desktop Header
-                            authLink.classList.add('hidden');
-                            logoutBtn.classList.remove('hidden');
-                            const emailPrefix = user.email ? user.email.split('@')[0] : 'Pengguna';
-                            logoutBtn.textContent = `Keluar (${emailPrefix})`;
-                            
-                            // Mobile Drawer
-                            authLinkMobile.classList.add('hidden');
-                            logoutBtnMobile.classList.remove('hidden');
-                            logoutBtnMobile.textContent = `Keluar (${emailPrefix})`;
-                            
-                            // Submission Button
-                            startSubmissionBtn.disabled = false;
-                            submissionStatus.classList.add('hidden');
-                        } else {
-                            // Desktop Header
-                            authLink.classList.remove('hidden');
-                            logoutBtn.classList.add('hidden');
-                            
-                            // Mobile Drawer
-                            authLinkMobile.classList.remove('hidden');
-                            logoutBtnMobile.classList.add('hidden');
-                            
-                            // Submission Button
-                            startSubmissionBtn.disabled = true;
-                            submissionStatus.classList.remove('hidden');
-                        }
-
-                        loadTestimonials(); // Panggil fungsi loadTestimonials di sini
-
-                    } else {
-                        currentUserId = null;
-                        isAuthenticated = false;
-                        // Desktop
-                        authLink.classList.remove('hidden');
-                        logoutBtn.classList.add('hidden');
-                        // Mobile
-                        authLinkMobile.classList.remove('hidden');
-                        logoutBtnMobile.classList.add('hidden');
-                        // Submission
-                        startSubmissionBtn.disabled = true;
-                        submissionStatus.classList.remove('hidden');
-                        
-                        loadTestimonials(); // Panggil juga saat logged out (jika diperlukan, atau bisa dipindah)
-                    }
-                });
-            };
-
-            firebaseInit();
-
-            // Handle Logout Function (BARU)
-            async function handleLogout() {
-                 try {
-                    if (auth) {
-                        await window.FirebaseServices.signOut(auth);
-                    }
-                    updateContent('beranda');
-                } catch (error) {
-                }
-            }
-            // (Listener logout lama dipindahkan ke allNavTargets)
-
-            // Handle Registration Form (ID Form Disesuaikan)
-            document.getElementById('register-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-password').value;
-                const messageDiv = document.getElementById('register-message');
-                messageDiv.textContent = 'Memproses pendaftaran...';
-                messageDiv.style.color = '#ffeba7';
+            // Tampilkan halaman target
+            const targetPage = document.getElementById(targetId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
                 
-                try {
-                    const { createUserWithEmailAndPassword } = window.FirebaseServices;
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    messageDiv.textContent = 'Pendaftaran berhasil! Anda masuk.';
-                    messageDiv.style.color = '#32cd32'; // Hijau
-                    // Flip kembali ke login setelah sukses
-                    setTimeout(() => {
-                        if (regLogCheckbox) regLogCheckbox.checked = false;
-                        updateContent('beranda');
-                    }, 1500);
-                } catch (error) {
-                    let displayMessage = "Pendaftaran gagal. Coba lagi.";
-                    if (error.code === 'auth/email-already-in-use') {
-                        displayMessage = "Email sudah terdaftar. Silakan Masuk.";
-                    } else if (error.code === 'auth/weak-password') {
-                        displayMessage = "Kata sandi terlalu lemah (Min 6 karakter).";
-                    }
-                    messageDiv.textContent = displayMessage;
-                    messageDiv.style.color = '#ff6b6b'; // Merah
+                // Jika target adalah auth-page, atur mode flip (V11)
+                if (targetId === 'auth-page') {
+                    authCheckbox.checked = (mode === 'register');
+                    // Sembunyikan footer saat di halaman auth
+                    document.querySelector('footer').classList.add('hidden');
+                } else {
+                    document.querySelector('footer').classList.remove('hidden');
+                }
+            } else {
+                // Fallback ke beranda jika target tidak ada
+                document.getElementById('beranda').classList.remove('hidden');
+                targetId = 'beranda';
+            }
+
+            // Update status aktif di nav utama (non-tombol)
+            mainNavLinks.forEach(link => {
+                if (link.dataset.target === targetId) {
+                    link.classList.add('text-[#063c7c]', 'font-bold');
+                    link.classList.remove('text-gray-700');
+                } else {
+                    link.classList.remove('text-[#063c7c]', 'font-bold');
+                    link.classList.add('text-gray-700');
                 }
             });
 
-            // Handle Login Form (ID Form Disesuaikan)
-            document.getElementById('login-form').addEventListener('submit', async (e) => {
+            // Tutup mobile drawer jika terbuka
+            mobileDrawer.classList.add('drawer-closed');
+            mobileDrawer.classList.remove('drawer-open');
+
+            // Scroll ke atas
+            window.scrollTo(0, 0);
+        }
+
+        // Event listener untuk semua link navigasi SPA
+        allNavTargets.forEach(link => {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                const messageDiv = document.getElementById('login-message');
-                messageDiv.textContent = 'Memproses masuk...';
-                messageDiv.style.color = '#ffeba7';
-
-                try {
-                    const { signInWithEmailAndPassword } = window.FirebaseServices;
-                    await signInWithEmailAndPassword(auth, email, password);
-                    messageDiv.textContent = 'Masuk berhasil! Selamat datang.';
-                    messageDiv.style.color = '#32cd32'; // Hijau
-                    setTimeout(() => {
-                        updateContent('beranda');
-                    }, 1000);
-                } catch (error) {
-                    let displayMessage = "Masuk gagal.";
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                        displayMessage = "Email atau kata sandi tidak valid.";
-                    }
-                    messageDiv.textContent = displayMessage;
-                    messageDiv.style.color = '#ff6b6b'; // Merah
-                }
+                const targetId = e.currentTarget.dataset.target;
+                const mode = e.currentTarget.dataset.mode || 'login'; // Untuk link Daftar
+                updateContent(targetId, mode);
             });
-            
-            // --- FIRESTORE TESTIMONIALS LOGIC ---
-            
-            const testimonialData = [
-                { name: "Dr. Rina Sari", title: "Akademisi, UNJ", text: "KAFAEdu adalah platform yang sangat fokus pada inovasi pedagogi. Proses reviewnya cepat dan konstruktif. Sangat direkomendasikan!" },
-                { name: "Prof. Budi Darmawan", title: "Penulis, UGM", text: "Kualitas artikel di sini tinggi dan relevan dengan perkembangan kurikulum terkini. Jurnal yang wajib dibaca di bidang pendidikan dasar." },
-                { name: "Siti Aisyah, M.Pd.", title: "Guru, SMP Negeri 5", text: "Saya merasa ide saya tentang Pendidikan Karakter disambut baik. Asisten ide dari Gemini sangat membantu merumuskan judul yang lebih kuat." }
-            ];
+        });
 
-            // PERBAIKAN: Menggunakan getDocs untuk seeding data
-            const loadTestimonials = async () => {
-                const testimonialsList = document.getElementById('testimonials-list');
+        // === Mobile Drawer (V12) ===
+        drawerToggle.addEventListener('click', () => {
+            mobileDrawer.classList.remove('drawer-closed');
+            mobileDrawer.classList.add('drawer-open');
+        });
+        drawerClose.addEventListener('click', () => {
+            mobileDrawer.classList.add('drawer-closed');
+            mobileDrawer.classList.remove('drawer-open');
+        });
 
-                if (!db || !window.FirebaseServices.collection || !window.FirebaseServices.getDocs) {
-                    renderTestimonials(testimonialData);
-                    return;
+        // === Inisialisasi Firebase & Auth ===
+        async function firebaseInit() {
+            try {
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
                 }
+            } catch (error) {
+                console.error("Error during Firebase sign-in:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                // Pengguna Login
+                currentUserId = user.uid;
+                currentUserEmail = user.email;
                 
-                const collectionRef = window.FirebaseServices.collection(db, `artifacts/${window.FirebaseServices.appId}/public/data/testimonials`);
+                // Tampilkan tombol Logout, sembunyikan Masuk/Daftar
+                authNavButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                authNavButtonMobile.classList.add('hidden');
+                logoutButtonMobile.classList.remove('hidden');
 
-                try {
-                    // 1. Cek data satu kali
-                    const initialSnapshot = await window.FirebaseServices.getDocs(collectionRef);
-                    if (initialSnapshot.empty) {
-                        // 2. Jika kosong, tambahkan data mock
-                        testimonialData.forEach(item => {
-                             window.FirebaseServices.addDoc(collectionRef, {
-                                name: item.name,
-                                title: item.title,
-                                text: item.text,
-                                createdAt: window.FirebaseServices.serverTimestamp()
-                            }).catch(err => console.error("Error seeding testimonial:", err)); // Pesan error diubah
-                        });
-                    }
-                } catch (error) {
-                    renderTestimonials(testimonialData); // Fallback jika getDocs gagal
+                // Tampilkan Submission Wizard, sembunyikan prompt
+                if(document.getElementById('kirim-naskah').classList.contains('hidden') === false) {
+                    submissionWizard.classList.remove('hidden');
+                    loginPrompt.classList.add('hidden');
                 }
 
-                // 3. Setup listener untuk menampilkan data secara real-time
-                window.FirebaseServices.onSnapshot(collectionRef, (snapshot) => {
-                    const fetchedTestimonials = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } else {
+                // Pengguna Logout atau Tamu
+                currentUserId = null;
+                currentUserEmail = null;
 
-                    if (fetchedTestimonials.length > 0) {
-                        renderTestimonials(fetchedTestimonials);
-                    } else {
-                        // Jika masih kosong (misalnya data mock belum selesai ditulis)
-                        testimonialsList.innerHTML = '<div class="col-span-1 md:col-span-3 text-center text-gray-500">Memuat testimoni...</div>';
-                    }
-                }, (error) => {
-                    renderTestimonials(testimonialData); // Fallback on error
-                });
-            };
-
-            const renderTestimonials = (data) => {
-                const testimonialsList = document.getElementById('testimonials-list');
-                testimonialsList.innerHTML = data.map(t => `
-                    <div class="p-5 bg-blue-50 rounded-xl border border-blue-200 shadow-sm">
-                        <p class="text-xl text-blue-700 mb-3 font-serif">❝</p>
-                        <p class="text-gray-700 italic text-sm mb-4">${t.text || 'Testimoni ini tidak memiliki teks.'}</p>
-                        <p class="font-semibold text-gray-900">${t.name || 'Anonim'}</p>
-                        <p class="text-xs text-blue-600">${t.title || 'Pengguna Jurnal'}</p>
-                    </div>
-                `).join('');
-            };
-
-            // --- GEMINI API Logic for Idea Assistant ---
-            const generateIdeaBtn = document.getElementById('generate-idea-btn');
-            const apiKey = ""; // API Key is automatically injected
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            const focusScope = [
-                "Basic and Primary Education",
-                "Indonesian language and literature education",
-                "Civic and Character Education",
-                "History of Education and Social Studies",
-                "Literacy and Learning Innovation"
-            ];
-
-            async function runGenerativeModel(payload) {
-                let retries = 0;
-                const maxRetries = 5;
-                while (retries < maxRetries) {
-                    try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        if (!response.ok) {
-                            if (response.status === 429 && retries < maxRetries - 1) {
-                                const delay = Math.pow(2, retries) * 1000;
-                                retries++;
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                continue;
-                            }
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-
-                        const result = await response.json();
-                        return result.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi kesalahan dalam menghasilkan konten.";
-                    } catch (error) {
-                        retries++;
-                        if (retries >= maxRetries) {
-                            return "Maaf, terjadi kesalahan jaringan atau API. Silakan coba lagi.";
-                        }
-                        const delay = Math.pow(2, retries) * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                    }
+                // Tampilkan tombol Masuk/Daftar, sembunyikan Logout
+                authNavButton.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+                authNavButtonMobile.classList.remove('hidden');
+                logoutButtonMobile.classList.add('hidden');
+                
+                // Sembunyikan Submission Wizard, tampilkan prompt
+                if(document.getElementById('kirim-naskah').classList.contains('hidden') === false) {
+                    submissionWizard.classList.add('hidden');
+                    loginPrompt.classList.remove('hidden');
                 }
-            }
-
-
-            async function generateIdea() {
-                const topicInput = document.getElementById('idea-input');
-                const resultDiv = document.getElementById('idea-result');
-                const loadingDiv = document.getElementById('idea-loading');
-                const topic = topicInput.value.trim();
-
-                if (!topic) {
-                    resultDiv.innerHTML = '<p class="text-red-600 font-medium">Mohon masukkan ide topik atau draf judul Anda.</p>';
-                    return;
-                }
-
-                loadingDiv.classList.remove('hidden');
-                resultDiv.innerHTML = '';
-                generateIdeaBtn.disabled = true;
-
-                const systemPrompt = `Anda adalah Asisten Editor Jurnal 'KAFAEdu: Journal of Education and Pedagogy'. Tugas Anda adalah memberikan umpan balik konstruktif dan analitis terhadap ide topik atau draf judul artikel yang diajukan oleh calon penulis.
-
-Fokus dan Ruang Lingkup Jurnal ini adalah:
-- ${focusScope.join("\n- ")}
-
-Tugas Anda:
-1. Analisis apakah ide tersebut SELARAS dengan salah satu (atau lebih) Fokus & Ruang Lingkup di atas.
-2. Berikan saran judul yang lebih kuat atau cara memperjelas fokus penelitian (maksimal 3 saran, berikan dalam bentuk poin).
-3. Berikan analisis singkat tentang potensi kontribusi akademik ide tersebut (maksimal 3 kalimat).
-
-Format respons Anda harus profesional, informatif, dan mudah dibaca, menggunakan poin-poin Markdown. Jawab dalam Bahasa Indonesia.`;
-
-                const userQuery = `Ide topik/draf judul yang akan diperiksa: "${topic}"`;
-
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    },
-                };
-
-                const generatedText = await runGenerativeModel(payload);
-
-                loadingDiv.classList.add('hidden');
-                generateIdeaBtn.disabled = false;
-
-                // Simple formatting for display
-                const formattedText = generatedText
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\n\n/g, '<br><br>')
-                    .replace(/\n/g, '<br>')
-                    .replace(/- /g, '<span class="text-blue-600 font-bold mr-1">•</span>');
-
-
-                resultDiv.innerHTML = `
-                    <div class="p-4 bg-blue-100 border border-blue-300 rounded-lg mt-4 text-gray-800">
-                        <h4 class="text-lg font-bold text-blue-800 mb-2 border-b border-blue-400 pb-1">Hasil Analisis Asisten</h4>
-                        <div class="text-sm">${formattedText}</div>
-                    </div>
-                `;
-            }
-
-            if (generateIdeaBtn) {
-                generateIdeaBtn.addEventListener('click', generateIdea);
             }
         });
+
+        // Handler Logout
+        function handleLogout() {
+            signOut(auth).then(() => {
+                showNotification('Logout Berhasil', 'Anda telah berhasil keluar.');
+                updateContent('beranda'); // Kembali ke beranda setelah logout
+            }).catch((error) => {
+                console.error("Error signing out:", error);
+                showNotification('Error', 'Gagal melakukan logout.');
+            });
+        }
+        logoutButton.addEventListener('click', handleLogout);
+        logoutButtonMobile.addEventListener('click', handleLogout);
+
+        // Handler Login (V11)
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    showNotification('Login Berhasil', `Selamat datang kembali!`);
+                    updateContent('beranda'); // Pindah ke beranda setelah login
+                })
+                .catch((error) => {
+                    console.error("Login error:", error);
+                    showNotification('Login Gagal', error.message);
+                });
+        });
+
+        // Handler Register (V11)
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            // const name = document.getElementById('register-name').value; // Bisa disimpan ke Firestore nanti
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    showNotification('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat. Selamat datang!');
+                    updateContent('beranda'); // Pindah ke beranda setelah register
+                })
+                .catch((error) => {
+                    console.error("Register error:", error);
+                    showNotification('Registrasi Gagal', error.message);
+                });
+        });
+
+        // === Logika Testimoni (V13 Fix) ===
+        async function initTestimonials() {
+            const testimonialsRef = collection(db, `artifacts/${appId}/public/data/testimonials`);
+            
+            // 1. Cek apakah koleksi kosong menggunakan getDocs (V13 Fix)
+            try {
+                const snapshot = await getDocs(testimonialsRef);
+                if (snapshot.empty) {
+                    console.log("Koleksi testimoni kosong, menambahkan mock data...");
+                    // Tambahkan mock data jika kosong
+                    const mockTestimonials = [
+                        { id: "fBPskr5adZOhPDP1f8IT", name: "Dr. Budi", role: "Peneliti", quote: "Proses review di KAFAEdu sangat cepat dan konstruktif. Sangat direkomendasikan!" },
+                        { id: "XRm6R88YNZUuLNdccfq5", name: "Prof. Citra", role: "Dosen", quote: "Jurnal ini menjadi acuan penting dalam bidang pedagogi di Indonesia." },
+                    ];
+                    
+                    for (const testimonial of mockTestimonials) {
+                        const docRef = doc(db, `artifacts/${appId}/public/data/testimonials`, testimonial.id);
+                        await setDoc(docRef, { name: testimonial.name, role: testimonial.role, quote: testimonial.quote });
+                    }
+                }
+            } catch (error) {
+                console.error("Error saat inisialisasi testimoni:", error);
+            }
+
+            // 2. Pasang onSnapshot listener untuk menampilkan data
+            onSnapshot(testimonialsRef, (snapshot) => {
+                if (snapshot.empty) {
+                    testimonialsContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Belum ada testimoni.</p>';
+                    return;
+                }
+                testimonialsContainer.innerHTML = ''; // Kosongkan kontainer
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const testimonialEl = document.createElement('div');
+                    testimonialEl.className = 'bg-white p-6 rounded-lg shadow-lg transform transition duration-300 hover:scale-105';
+                    testimonialEl.innerHTML = `
+                        <p class="text-gray-700 italic">"${data.quote}"</p>
+                        <p class="text-right font-bold text-gray-900 mt-4">- ${data.name}</p>
+                        <p class="text-right text-sm text-[#063c7c]">${data.role}</p>
+                    `;
+                    testimonialsContainer.appendChild(testimonialEl);
+                });
+            }, (error) => {
+                console.error("Error listening to testimonials:", error);
+                testimonialsContainer.innerHTML = '<p class="text-red-500 text-center col-span-full">Gagal memuat testimoni.</p>';
+            });
+        }
+        
+        // === Asisten Ide (Gemini API) ===
+        const systemPrompt = `
+            Anda adalah Asisten Editor untuk "KAFAEdu: Journal of Education and Pedagogy".
+            Fokus & Ruang Lingkup jurnal adalah:
+            1. Basic and Primary Education (Pendidikan Dasar)
+            2. Indonesian language and literature education (Pendidikan Bahasa dan Sastra Indonesia)
+            3. Civic and Character Education (Pendidikan Pancasila dan Karakter)
+            4. History of Education and Social Studies (Pendidikan Sejarah dan IPS)
+            5. Literacy and Learning Innovation (Literasi dan Inovasi Pembelajaran)
+
+            Tugas Anda:
+            1. Analisis ide/judul yang diberikan oleh pengguna.
+            2. Tentukan apakah ide tersebut SESUAI atau TIDAK SESUAI dengan 5 poin di atas.
+            3. Berikan "Analisis Kesesuaian" (1-2 kalimat) yang menjelaskan mengapa ide itu cocok atau tidak.
+            4. Berikan "Potensi Kontribusi" (1-2 kalimat) yang menyoroti kebaruan ide tersebut.
+            5. Berikan 2 "Saran Judul Alternatif" yang lebih kuat dan akademis.
+            6. Format output HANYA dalam HTML (gunakan <strong>, <ul>, <li>). JANGAN gunakan markdown.
+        `;
+
+        async function callGeminiAPI(prompt) {
+            const apiKey = ""; // Disediakan oleh environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            let response;
+            let retries = 3;
+            let delay = 1000;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        throw new Error("Respon API tidak valid atau tidak berisi teks.");
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    if (i < retries - 1) {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2; // Exponential backoff
+                    } else {
+                        throw error; // Gagal setelah semua percobaan
+                    }
+                }
+            }
+        }
+
+        analyzeIdeaBtn.addEventListener('click', async () => {
+            const userIdea = ideaInput.value;
+            if (!userIdea.trim()) {
+                showNotification("Input Kosong", "Silakan masukkan ide atau draf judul Anda.");
+                return;
+            }
+
+            // Tampilkan loading, sembunyikan hasil sebelumnya
+            geminiResultContainer.classList.remove('hidden');
+            geminiLoading.classList.remove('hidden');
+            geminiError.classList.add('hidden');
+            geminiResult.classList.add('hidden');
+            geminiResult.innerHTML = '';
+
+            try {
+                const resultText = await callGeminiAPI(userIdea);
+                geminiResult.innerHTML = resultText;
+                geminiResult.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                geminiError.textContent = `Gagal menganalisis ide: ${error.message}. Silakan coba lagi.`;
+                geminiError.classList.remove('hidden');
+            } finally {
+                geminiLoading.classList.add('hidden');
+            }
+        });
+
+        // === Logika Submission Wizard (V18) ===
+        function updateWizardStep(targetStep) {
+            // Validasi
+            targetStep = parseInt(targetStep);
+            if (targetStep < 1) targetStep = 1;
+            if (targetStep > 5) targetStep = 5;
+
+            // Sembunyikan semua konten
+            stepContents.forEach(content => content.classList.remove('active'));
+            // Tampilkan konten target
+            document.getElementById(`step-${targetStep}`).classList.add('active');
+
+            // Update status link stepper
+            stepLinks.forEach(link => {
+                const step = parseInt(link.dataset.step);
+                link.classList.remove('active');
+                if (step < targetStep) {
+                    link.classList.remove('disabled');
+                    link.classList.add('text-green-600', 'border-green-600'); // Selesai
+                } else if (step === targetStep) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.add('disabled');
+                    link.classList.remove('text-green-600', 'border-green-600');
+                }
+            });
+
+            currentWizardStep = targetStep;
+        }
+
+        // Event Listeners untuk Tombol Navigasi Wizard
+        wizardNextButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (currentWizardStep === 4) {
+                    // Update ringkasan saat pindah dari step 4 ke 5
+                    document.getElementById('summary-title').textContent = document.getElementById('manuscript-title').value || '(Tidak diisi)';
+                    document.getElementById('summary-author').textContent = document.getElementById('author-name').value || '(Tidak diisi)';
+                    document.getElementById('summary-file').textContent = uploadedFile ? uploadedFile.name : '(Tidak ada file)';
+                }
+                updateWizardStep(currentWizardStep + 1);
+            });
+        });
+        wizardPrevButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                updateWizardStep(currentWizardStep - 1);
+            });
+        });
+        stepLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!e.currentTarget.classList.contains('disabled')) {
+                    updateWizardStep(e.currentTarget.dataset.step);
+                }
+            });
+        });
+
+        // Logika Validasi Step 1 (Pedoman)
+        agreeGuidelines.addEventListener('change', () => {
+            const nextBtn = document.querySelector('#step-1 .wizard-next');
+            nextBtn.disabled = !agreeGuidelines.checked;
+        });
+
+        // Logika Validasi Step 4 (Upload)
+        function updateStep4NextButton() {
+            const nextBtn = document.querySelector('#step-4 .wizard-next');
+            nextBtn.disabled = !uploadedFile;
+        }
+
+        // Logika Drop Zone (Upload)
+        dropZone.addEventListener('click', () => fileUpload.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-[#063c7c]', 'bg-blue-50');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-[#063c7c]', 'bg-blue-50');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-[#063c7c]', 'bg-blue-50');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+        fileUpload.addEventListener('change', () => {
+            if (fileUpload.files.length > 0) {
+                handleFileUpload(fileUpload.files[0]);
+            }
+        });
+
+        function handleFileUpload(file) {
+            // Validasi tipe file (opsional tapi disarankan)
+            if (!file.name.endsWith('.doc') && !file.name.endsWith('.docx')) {
+                showNotification('File Tidak Valid', 'Hanya file .doc atau .docx yang diizinkan.');
+                return;
+            }
+            uploadedFile = file;
+            fileUploadInfo.textContent = `File terpilih: ${file.name}`;
+            fileUploadInfo.classList.remove('hidden');
+            dropZone.classList.add('border-green-500');
+            updateStep4NextButton();
+        }
+
+
+        // Logika Validasi Step 5 (Konfirmasi)
+        agreeFinal.addEventListener('change', () => {
+            submitManuscriptBtn.disabled = !agreeFinal.checked;
+        });
+
+        // Handler Submit Naskah (Final)
+        submitManuscriptBtn.addEventListener('click', async () => {
+            // Tampilkan notifikasi loading
+            showNotification('Mengirim...', 'Harap tunggu, naskah Anda sedang dikirim.');
+            
+            // Di sini Anda akan menambahkan logika untuk:
+            // 1. Upload `uploadedFile` ke Firebase Storage (belum kita setup)
+            // 2. Simpan metadata (info penulis, info naskah, link file) ke Firestore
+
+            // Simulasi sukses
+            setTimeout(() => {
+                showNotification('Pengiriman Berhasil!', 'Naskah Anda telah berhasil dikirim. Anda akan menerima email konfirmasi.');
+                // Reset wizard dan kembali ke beranda
+                updateContent('beranda');
+                // Reset form (implementasi nanti)
+            }, 2000);
+        });
+
+
+        // === Inisialisasi Aplikasi ===
+        document.addEventListener('DOMContentLoaded', () => {
+            firebaseInit();
+            initTestimonials();
+            updateContent('beranda'); // Mulai dari halaman beranda
+        });
+
     </script>
 
 </body>
