@@ -13,7 +13,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // PERBAIKAN: Mengimpor getDocs
+        import { getFirestore, collection, onSnapshot, query, addDoc, serverTimestamp, setLogLevel, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables provided by the environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -37,7 +38,8 @@
             window.FirebaseServices.onSnapshot = onSnapshot;
             window.FirebaseServices.addDoc = addDoc;
             window.FirebaseServices.serverTimestamp = serverTimestamp;
-
+            window.FirebaseServices.getDocs = getDocs; // PERBAIKAN: Menambahkan getDocs
+            
             // Auth
             window.FirebaseServices.signInAnonymously = signInAnonymously;
             window.FirebaseServices.signInWithCustomToken = signInWithCustomToken;
@@ -53,10 +55,10 @@
         }
     </script>
     <!-- Chosen Palette: Academic Blue (Main Site) | Dark Flip Card (Auth Page) -->
-    <!-- Application Structure Plan: Mengganti header lama dengan header baru yang sticky, putih, dan memiliki hamburger menu (drawer) untuk mobile, sambil mempertahankan semua fungsionalitas SPA dan Auth. -->
+    <!-- Application Structure Plan: Mengubah #beranda menjadi desain landing page full-width, menghapus sidebar, dan menambahkan Hero section, 5-icon scope, dan 3-step process. -->
     <!-- Visualization & Content Choices: 
-        1. Header: Desain sticky putih (terinspirasi dari user), logo KAFAEdu, link nav SPA, tombol Auth, dan Hamburger Drawer.
-        2. JS: Menambahkan logika untuk hamburger drawer (toggle, overlay close).
+        1. Beranda: Didesain ulang sebagai landing page flow.
+        2. JS: Menambahkan '.spa-nav-link' ke query selector 'allNavTargets' agar CTA baru berfungsi.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -68,9 +70,6 @@
             background-color: #f8fafc; /* Default site background */
             overflow-x: hidden;
         }
-        
-        /* General Site Styling (Navbar, Footer, Cards) */
-        /* CSS .elegant-header DIHAPUS karena header baru menggunakan kelas Tailwind murni */
         
         /* Navlink (tetap dipertahankan karena elegan) */
         .nav-link {
@@ -101,7 +100,6 @@
         #drawer-overlay {
             transition: opacity 0.3s ease-in-out;
         }
-
 
         /* --- STYLES FOR AUTH PAGE (From User CSS) --- */
         
@@ -364,31 +362,31 @@
 
     <div class="min-h-screen flex flex-col">
         
-        <!-- ===== HEADER BARU (Diadaptasi dari contoh user) ===== -->
+        <!-- ===== HEADER ===== -->
         <header id="main-header" class="bg-white shadow-md sticky top-0 z-40">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 
-                <!-- Logo KAFAEdu (dari header lama) -->
+                <!-- Logo KAFAEdu -->
                 <div class="text-left">
                     <h1 class="text-3xl font-extrabold text-blue-800">KAFAEdu</h1>
                     <p class="text-xs text-gray-500 font-medium">Journal of Education and Pedagogy</p>
                 </div>
 
-                <!-- Hamburger (dari contoh user) -->
+                <!-- Hamburger -->
                 <button id="drawer-toggle" class="md:hidden text-gray-700 focus:outline-none">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
 
-                <!-- Navigasi Desktop (fungsionalitas dari header lama, style dari contoh user) -->
+                <!-- Navigasi Desktop -->
                 <nav id="main-nav" class="hidden md:flex items-center space-x-1 lg:space-x-4 text-sm font-medium text-gray-600">
                     <a href="#beranda" data-target="beranda" class="nav-link active">Beranda</a>
                     <a href="#tentang" data-target="tentang" class="nav-link">Tentang Jurnal</a>
                     <a href="#arsip" data-target="arsip" class="nav-link">Arsip</a>
                     <a href="#kirim" data-target="kirim" class="nav-link">Kirim Naskah</a>
                     
-                    <!-- Tombol Auth (fungsionalitas dari header lama) -->
+                    <!-- Tombol Auth -->
                     <div class="flex items-center space-x-2 ml-4">
                         <a href="#login" data-target="login" id="auth-link" class="btn-primary text-sm shadow-blue-500/50">Masuk / Daftar</a>
                         <a href="#" id="logout-btn" class="hidden text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-sm">Keluar</a>
@@ -397,7 +395,7 @@
             </div>
         </header>
 
-        <!-- ===== MOBILE DRAWER (Baru) ===== -->
+        <!-- ===== MOBILE DRAWER ===== -->
         <!-- Overlay -->
         <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
         <!-- Drawer Content -->
@@ -429,71 +427,150 @@
 
         <main class="flex-grow">
             
-            <!-- BERANDA SECTION -->
-            <section id="beranda" class="content-section container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                <div class="soft-card">
-                    <div class="text-center mb-10">
-                        <h2 class="text-3xl font-extrabold text-blue-800 mb-2">Illuminating Minds through Educational Insight</h2>
-                        <p class="text-xl text-gray-600">Jurnal Akses Terbuka untuk Pendidikan dan Pedagogi Inovatif.</p>
+            <!-- ===== BERANDA SECTION (DESAIN LANDING PAGE BARU) ===== -->
+            <section id="beranda" class="content-section">
+                
+                <!-- 1. Hero Section -->
+                <div class="w-full bg-gradient-to-r from-blue-800 to-blue-600 text-white shadow-xl relative overflow-hidden">
+                    <div class="container mx-auto px-6 py-24 text-center">
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Illuminating Minds through Educational Insight</h2>
+                        <p class="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto">Jurnal Akses Terbuka untuk Pendidikan dan Pedagogi Inovatif.</p>
+                        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                            <!-- Tombol CTA ini perlu ditambahkan ke listener navigasi -->
+                            <a href="#kirim" data-target="kirim" class="spa-nav-link bg-white text-blue-700 font-semibold px-8 py-3 rounded-lg text-lg shadow-lg hover:bg-gray-100 transition-transform transform hover:scale-105 duration-300">
+                                Kirim Naskah
+                            </a>
+                            <a href="#arsip" data-target="arsip" class="spa-nav-link border-2 border-white text-white font-semibold px-8 py-3 rounded-lg text-lg hover:bg-white hover:text-blue-700 transition-all duration-300">
+                                Jelajahi Arsip
+                            </a>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
-                        <!-- Terbitan Terkini -->
-                        <div class="lg:col-span-2 space-y-6">
-                            <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-4">Terbitan Terkini: Vol. 2 No. 1 (2025)</h3>
-                            <article class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100 transition-transform hover:scale-[1.01] duration-200">
-                                <h4 class="text-lg font-semibold text-blue-700 hover:underline">Inovasi Pembelajaran Berbasis Proyek untuk Meningkatkan Keterampilan Literasi Siswa Sekolah Dasar</h4>
-                                <p class="text-sm text-gray-600 mt-1">Ahmad Subagja, Siti Mariam</p>
-                                <div class="flex justify-between items-center mt-3">
+                <!-- 2. Fokus & Ruang Lingkup (Visual) -->
+                <div class="py-20 bg-white">
+                    <div class="container mx-auto px-6">
+                        <h3 class="text-3xl font-bold text-center text-gray-800 mb-16">Fokus & Ruang Lingkup</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+                            
+                            <!-- Item 1 -->
+                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
+                                </div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Pendidikan Dasar</h4>
+                                <p class="text-sm text-gray-600">Basic and Primary Education</p>
+                            </div>
+                            <!-- Item 2 -->
+                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
+                                </div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Bahasa & Sastra</h4>
+                                <p class="text-sm text-gray-600">Indonesian language and literature</p>
+                            </div>
+                            <!-- Item 3 -->
+                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
+                                </div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Pendidikan Karakter</h4>
+                                <p class="text-sm text-gray-600">Civic and Character Education</p>
+                            </div>
+                            <!-- Item 4 -->
+                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
+                                </div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Sejarah & Sosial</h4>
+                                <p class="text-sm text-gray-600">History of Education and Social Studies</p>
+                            </div>
+                            <!-- Item 5 -->
+                            <div class="text-center p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13.5M8.25 6.253l7.5 13.5M3 10.5h18M7.5 3l9 18"></path></svg>
+                                </div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Literasi & Inovasi</h4>
+                                <p class="text-sm text-gray-600">Literacy and Learning Innovation</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Terbitan Terkini -->
+                <div class="py-20 bg-gray-50">
+                    <div class="container mx-auto px-6">
+                        <h3 class="text-3xl font-bold text-center text-gray-800 mb-16">Terbitan Terkini</h3>
+                        <div class="space-y-6 max-w-4xl mx-auto">
+                            <article class="soft-card flex flex-col md:flex-row items-center gap-6">
+                                <div class="flex-grow">
                                     <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Dasar</span>
-                                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700 font-medium">Baca Selengkapnya →</a>
+                                    <h4 class="mt-2 text-xl font-semibold text-blue-700 hover:underline">Inovasi Pembelajaran Berbasis Proyek untuk Meningkatkan Keterampilan Literasi Siswa Sekolah Dasar</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Ahmad Subagja, Siti Mariam</p>
                                 </div>
+                                <a href="#" class="flex-shrink-0 text-sm text-blue-500 hover:text-blue-700 font-medium md:ml-6">Baca Selengkapnya →</a>
                             </article>
-                            <article class="p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-100 transition-transform hover:scale-[1.01] duration-200">
-                                <h4 class="text-lg font-semibold text-blue-700 hover:underline">Peran Pendidikan Karakter dalam Membentuk Warga Negara yang Bertanggung Jawab</h4>
-                                <p class="text-sm text-gray-600 mt-1">Dewi Lestari, Budi Santoso</p>
-                                <div class="flex justify-between items-center mt-3">
+                            <article class="soft-card flex flex-col md:flex-row items-center gap-6">
+                                <div class="flex-grow">
                                     <span class="text-xs text-blue-600 bg-blue-100 rounded-full px-3 py-1 font-medium">Pendidikan Karakter</span>
-                                    <a href="#" class="text-sm text-blue-500 hover:text-blue-700 font-medium">Baca Selengkapnya →</a>
+                                    <h4 class="mt-2 text-xl font-semibold text-blue-700 hover:underline">Peran Pendidikan Karakter dalam Membentuk Warga Negara yang Bertanggung Jawab</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Dewi Lestari, Budi Santoso</p>
                                 </div>
+                                <a href="#" class="flex-shrink-0 text-sm text-blue-500 hover:text-blue-700 font-medium md:ml-6">Baca Selengkapnya →</a>
                             </article>
                         </div>
-
-                        <!-- Sidebar Info -->
-                        <aside class="space-y-8">
-                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 shadow-inner">
-                                <h3 class="text-xl font-bold text-blue-800 mb-4">Fokus & Ruang Lingkup</h3>
-                                <ul class="list-disc list-outside space-y-2 text-sm text-gray-700 pl-5">
-                                    <li>Basic and Primary Education</li>
-                                    <li>Indonesian language and literature education</li>
-                                    <li>Civic and Character Education</li>
-                                    <li>History of Education and Social Studies</li>
-                                    <li>Literacy and Learning Innovation</li>
-                                </ul>
-                            </div>
-                            
-                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4">Informasi Penting</h3>
-                                <ul class="space-y-2 text-sm">
-                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">📖 Untuk Pembaca</a></li>
-                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">✍️ Untuk Penulis</a></li>
-                                    <li><a href="#" class="text-blue-700 hover:underline flex items-center">📚 Untuk Pustakawan</a></li>
-                                </ul>
-                            </div>
-                        </aside>
                     </div>
-                    
-                    <!-- TESTIMONI SECTION -->
-                    <div class="mt-16 pt-8 border-t border-gray-200">
-                        <h3 class="text-2xl font-bold text-gray-800 text-center mb-8">Apa Kata Komunitas Kami?</h3>
-                        <div id="testimonials-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                </div>
+                
+                <!-- 4. Proses Publikasi (Baru) -->
+                <div class="py-20 bg-white">
+                    <div class="container mx-auto px-6 text-center">
+                        <h3 class="text-3xl font-bold text-gray-800 mb-16">Proses Publikasi Sederhana</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
+                            <!-- Step 1 -->
+                            <div class="flex flex-col items-center">
+                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">1</div>
+                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Siapkan Naskah</h4>
+                                <p class="text-gray-600 text-sm">Gunakan templat kami dan pastikan artikel Anda selaras dengan fokus & ruang lingkup jurnal.</p>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="flex flex-col items-center">
+                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">2</div>
+                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Review Sejawat</h4>
+                                <p class="text-gray-600 text-sm">Naskah Anda akan melalui proses *double-blind review* oleh para ahli di bidangnya.</p>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="flex flex-col items-center">
+                                <div class="w-20 h-20 bg-blue-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-4">3</div>
+                                <h4 class="text-xl font-semibold text-gray-900 mb-2">Publikasi Daring</h4>
+                                <p class="text-gray-600 text-sm">Setelah diterima, artikel Anda akan dipublikasikan secara daring dan dapat diakses secara bebas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. TESTIMONI SECTION (Dipindahkan ke sini) -->
+                <div class="py-20 bg-blue-50">
+                    <div class="container mx-auto px-6">
+                        <h3 class="text-3xl font-bold text-gray-800 text-center mb-16">Apa Kata Komunitas Kami?</h3>
+                        <div id="testimonials-list" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                             <!-- Testimonial items loaded here by JS -->
                             <div class="col-span-1 md:col-span-3 text-center text-gray-500">Memuat testimoni...</div>
                         </div>
                     </div>
-
                 </div>
+                
+                <!-- 6. Final CTA (Baru) -->
+                <div class="py-20 bg-white">
+                    <div class="container mx-auto px-6 text-center max-w-3xl">
+                        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Siap Berkontribusi untuk Pendidikan?</h2>
+                        <p class="text-xl text-gray-600 mb-8">Kirimkan naskah penelitian terbaik Anda dan jadilah bagian dari komunitas KAFAEdu.</p>
+                        <a href="#kirim" data-target="kirim" class="spa-nav-link btn-primary text-lg px-10 py-4 shadow-blue-500/50 transform hover:scale-105 transition-transform duration-300">
+                            Mulai Kirim Naskah Sekarang
+                        </a>
+                    </div>
+                </div>
+
             </section>
             
             <!-- TENTANG JURNAL SECTION -->
@@ -713,17 +790,15 @@
             const logoutBtnMobile = document.getElementById('logout-btn-mobile');
 
             // --- PERBAIKAN: Mengumpulkan semua tautan navigasi yang berfungsi ---
-            // Termasuk link desktop, link mobile, dan tombol auth
+            // Termasuk link desktop, link mobile, tombol auth, DAN Tombol CTA Landing Page
             const allNavTargets = [
                 ...navLinks, 
                 ...mobileNavLinks,
                 authLink, 
                 authLinkMobile,
-                ...document.querySelectorAll('.link') // Untuk "Forgot password" jika ingin difungsikan
+                ...document.querySelectorAll('.link'), // Untuk "Forgot password"
+                ...document.querySelectorAll('.spa-nav-link') // Untuk Tombol CTA Landing Page
             ]; 
-
-            // --- (DIHAPUS) Scroll Animation for Navbar ---
-            // Tidak diperlukan lagi karena header baru sticky dan shadow permanen.
 
             function updateContent(targetId) {
                 // Sembunyikan semua section
@@ -776,42 +851,47 @@
             // --- Listener untuk semua tautan navigasi ---
             allNavTargets.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    const targetId = this.dataset.target || (this.id.startsWith('logout-btn') ? 'beranda' : null);
-                    
+                    // Cek jika link memiliki data-target (bukan link eksternal)
+                    if (this.dataset.target) {
+                        e.preventDefault();
+                        const targetId = this.dataset.target;
+
+                        // Navigasi Auth (Login/Register)
+                        if (targetId === 'login' || targetId === 'register') {
+                            updateContent('auth-page'); // Tampilkan halaman auth
+                            
+                            // Kontrol checkbox untuk flip
+                            if (regLogCheckbox) {
+                                regLogCheckbox.checked = (targetId === 'register');
+                            }
+                            
+                            // Bersihkan pesan error
+                            if(loginMessage) loginMessage.textContent = '';
+                            if(registerMessage) registerMessage.textContent = '';
+                            
+                        } 
+                        // Navigasi SPA (Internal)
+                        else {
+                            updateContent(targetId);
+                        }
+                        
+                        // Selalu tutup drawer setelah klik
+                        closeDrawer();
+                        
+                        // Jangan scroll ke atas jika targetnya adalah auth page
+                        if (targetId !== 'login' && targetId !== 'register') {
+                            window.scrollTo(0, 0);
+                        }
+                    } 
                     // Navigasi logout
-                    if (this.id.startsWith('logout-btn')) {
+                    else if (this.id.startsWith('logout-btn')) {
                          e.preventDefault();
                          handleLogout(); // Panggil fungsi logout
                          updateContent('beranda');
+                         closeDrawer();
+                         window.scrollTo(0, 0);
                     }
-                    // Navigasi Auth (Login/Register)
-                    else if (targetId === 'login' || targetId === 'register') {
-                        e.preventDefault();
-                        updateContent('auth-page'); // Tampilkan halaman auth
-                        
-                        // Kontrol checkbox untuk flip
-                        if (regLogCheckbox) {
-                            regLogCheckbox.checked = (targetId === 'register');
-                        }
-                        
-                        // Bersihkan pesan error
-                        if(loginMessage) loginMessage.textContent = '';
-                        if(registerMessage) registerMessage.textContent = '';
-                        
-                    } 
-                    // Navigasi SPA (Internal)
-                    else if (targetId) {
-                        e.preventDefault();
-                        updateContent(targetId);
-                    }
-                    
-                    // Selalu tutup drawer setelah klik
-                    closeDrawer();
-                    
-                    // Jangan scroll ke atas jika targetnya adalah auth page
-                    if (targetId !== 'login' && targetId !== 'register') {
-                        window.scrollTo(0, 0);
-                    }
+                    // Untuk link lain (misal "Forgot Password"), biarkan default
                 });
             });
             
@@ -890,7 +970,7 @@
                             submissionStatus.classList.remove('hidden');
                         }
 
-                        loadTestimonials();
+                        loadTestimonials(); // Panggil fungsi loadTestimonials di sini
 
                     } else {
                         currentUserId = null;
@@ -905,7 +985,7 @@
                         startSubmissionBtn.disabled = true;
                         submissionStatus.classList.remove('hidden');
                         
-                        loadTestimonials(); 
+                        loadTestimonials(); // Panggil juga saat logged out (jika diperlukan, atau bisa dipindah)
                     }
                 });
             };
@@ -990,31 +1070,44 @@
                 { name: "Siti Aisyah, M.Pd.", title: "Guru, SMP Negeri 5", text: "Saya merasa ide saya tentang Pendidikan Karakter disambut baik. Asisten ide dari Gemini sangat membantu merumuskan judul yang lebih kuat." }
             ];
 
-            const loadTestimonials = () => {
+            // PERBAIKAN: Menggunakan getDocs untuk seeding data
+            const loadTestimonials = async () => {
                 const testimonialsList = document.getElementById('testimonials-list');
 
-                if (!db || !window.FirebaseServices.collection) {
+                if (!db || !window.FirebaseServices.collection || !window.FirebaseServices.getDocs) {
                     renderTestimonials(testimonialData);
                     return;
                 }
                 
                 const collectionRef = window.FirebaseServices.collection(db, `artifacts/${window.FirebaseServices.appId}/public/data/testimonials`);
 
-                window.FirebaseServices.onSnapshot(collectionRef, (snapshot) => {
-                    const fetchedTestimonials = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                    if (fetchedTestimonials.length === 0) {
-                        // Populate with mock data if empty
+                try {
+                    // 1. Cek data satu kali
+                    const initialSnapshot = await window.FirebaseServices.getDocs(collectionRef);
+                    if (initialSnapshot.empty) {
+                        // 2. Jika kosong, tambahkan data mock
                         testimonialData.forEach(item => {
                              window.FirebaseServices.addDoc(collectionRef, {
                                 name: item.name,
                                 title: item.title,
                                 text: item.text,
                                 createdAt: window.FirebaseServices.serverTimestamp()
-                            }).catch(err => console.error("Error adding mock testimonial:", err));
+                            }).catch(err => console.error("Error seeding testimonial:", err)); // Pesan error diubah
                         });
-                    } else {
+                    }
+                } catch (error) {
+                    renderTestimonials(testimonialData); // Fallback jika getDocs gagal
+                }
+
+                // 3. Setup listener untuk menampilkan data secara real-time
+                window.FirebaseServices.onSnapshot(collectionRef, (snapshot) => {
+                    const fetchedTestimonials = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                    if (fetchedTestimonials.length > 0) {
                         renderTestimonials(fetchedTestimonials);
+                    } else {
+                        // Jika masih kosong (misalnya data mock belum selesai ditulis)
+                        testimonialsList.innerHTML = '<div class="col-span-1 md:col-span-3 text-center text-gray-500">Memuat testimoni...</div>';
                     }
                 }, (error) => {
                     renderTestimonials(testimonialData); // Fallback on error
