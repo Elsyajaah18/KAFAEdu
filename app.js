@@ -1,17 +1,12 @@
-// (PERBAIKAN V23 + V22)
+// (PERBAIKAN V29)
 // TIDAK ADA 'import' di sini.
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM telah dimuat. Memulai eksekusi app.js (V25/V26)...");
+    console.log("DOM telah dimuat. Memulai eksekusi app.js (V29)...");
 
-    // (PERBAIKAN V23)
-    // Definisikan fungsi Firebase dari 'window' object
-    // Kita tambahkan pengecekan 'window.firebase' agar tidak error jika gagal dimuat
-    const firebaseApp = window.firebase?.app;
-    const firebaseAuth = window.firebase?.auth;
-    const firebaseFirestore = window.firebase?.firestore;
-
-    const initializeApp = firebaseApp?.initializeApp;
+    // (PERBAIKAN V29)
+    // Definisikan fungsi Firebase dari 'window' object dengan BENAR
+    const initializeApp = window.firebase?.app?.initializeApp;
     const { 
         getAuth, 
         signInAnonymously, 
@@ -20,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
         signOut
-    } = firebaseAuth || {}; // Gunakan object kosong jika 'firebaseAuth' tidak ada
+    } = window.firebase?.auth || {}; // Gunakan object kosong jika 'firebaseAuth' tidak ada
     const { 
         getFirestore, 
         doc, 
@@ -32,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         getDocs,
         addDoc,
         setLogLevel
-    } = firebaseFirestore || {}; // Gunakan object kosong jika 'firebaseFirestore' tidak ada
+    } = window.firebase?.firestore || {}; // Gunakan object kosong jika 'firebaseFirestore' tidak ada
 
 
     // === Variabel State Global ===
@@ -215,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeFirebaseAndAuth() {
         console.log("Mencoba inisialisasi Firebase...");
         try {
-            // (PERBAIKAN V23) Cek apakah SDK-nya berhasil dimuat
+            // (PERBAIKAN V29) Cek apakah SDK-nya berhasil dimuat DAN fungsi intinya ada
             if (!initializeApp || !getAuth || !getFirestore) {
                 throw new Error("Firebase SDK gagal dimuat dari CDN. Periksa koneksi internet atau adblocker.");
             }
