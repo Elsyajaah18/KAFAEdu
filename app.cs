@@ -1,0 +1,308 @@
+/* Menggunakan font Inter sebagai default, Poppins untuk auth */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* bg-gray-100 */
+}
+
+/* Header Shadow (V12) */
+.header-shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile Drawer (V12) */
+.drawer-closed {
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+.drawer-open {
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* * =========================================
+ * CSS HALAMAN AUTH (LOGIN/REGISTER 3D FLIP)
+ * (V11 & V23)
+ * =========================================
+ */
+
+#auth-page {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #c4c3ca;
+    /* Latar belakang auth-page */
+    background-color: #1f2029;
+    overflow-x: hidden;
+    width: 100vw; /* Memastikan penuhi layar */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+
+#auth-page .section {
+    position: relative;
+    width: 100%;
+    display: block;
+}
+#auth-page .full-height {
+    min-height: 100vh;
+}
+#auth-page a {
+    cursor: pointer;
+    transition: all 200ms linear;
+}
+#auth-page a:hover {
+    text-decoration: none;
+}
+#auth-page .link {
+    color: #c4c3ca;
+}
+#auth-page .link:hover {
+    color: #ffeba7;
+}
+#auth-page p {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.7;
+}
+#auth-page h4 {
+    font-weight: 600;
+    color: #c4c3ca; /* Warna teks judul */
+}
+#auth-page h6 {
+    color: #c4c3ca; /* Warna teks Log In / Sign Up */
+}
+#auth-page h6 span {
+    padding: 0 20px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+/* Checkbox Toggle (V11) */
+#auth-page [type="checkbox"]:checked,
+#auth-page [type="checkbox"]:not(:checked) {
+    position: absolute;
+    left: -9999px;
+}
+#auth-page .checkbox:checked + label,
+#auth-page .checkbox:not(:checked) + label {
+    position: relative;
+    display: block;
+    text-align: center;
+    width: 60px;
+    height: 16px;
+    border-radius: 8px;
+    padding: 0;
+    margin: 10px auto;
+    cursor: pointer;
+    background-color: #ffeba7;
+}
+#auth-page .checkbox:checked + label:before,
+#auth-page .checkbox:not(:checked) + label:before {
+    position: absolute;
+    display: block;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: #ffeba7;
+    background-color: #102770;
+    font-family: 'unicons';
+    content: '\eb4f';
+    z-index: 20;
+    top: -10px;
+    left: -10px;
+    line-height: 36px;
+    text-align: center;
+    font-size: 24px;
+    transition: all 0.5s ease;
+}
+#auth-page .checkbox:checked + label:before {
+    transform: translateX(44px) rotate(-270deg);
+}
+
+/* 3D Card Wrap (V11) */
+#auth-page .card-3d-wrap {
+    position: relative;
+    width: 440px;
+    max-width: 100%;
+    /* Tinggi kartu disesuaikan agar pas */
+    height: 480px; 
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    perspective: 800px;
+    margin-top: 60px;
+}
+#auth-page .card-3d-wrapper {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    transition: all 600ms ease-out;
+}
+#auth-page .card-front,
+#auth-page .card-back {
+    width: 100%;
+    height: 100%;
+    background-color: #2a2b38;
+    background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/pat.svg');
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    background-size: 300%;
+    position: absolute;
+    border-radius: 6px;
+    left: 0;
+    top: 0;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -o-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+#auth-page .card-back {
+    transform: rotateY(180deg);
+}
+#auth-page .checkbox:checked ~ .card-3d-wrap .card-3d-wrapper {
+    transform: rotateY(180deg);
+}
+
+/* Form Styling (V11) */
+#auth-page .center-wrap {
+    position: absolute;
+    width: 100%;
+    padding: 0 35px;
+    top: 50%;
+    left: 0;
+    transform: translate3d(0, -50%, 35px) perspective(100px);
+    z-index: 20;
+    display: block;
+}
+#auth-page .form-group {
+    position: relative;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+#auth-page .form-style {
+    padding: 13px 20px;
+    padding-left: 55px;
+    height: 48px;
+    width: 100%;
+    font-weight: 500;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 22px;
+    letter-spacing: 0.5px;
+    outline: none;
+    color: #c4c3ca;
+    background-color: #1f2029;
+    border: none;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+}
+#auth-page .form-style:focus,
+#auth-page .form-style:active {
+    border: none;
+    outline: none;
+    box-shadow: 0 4px 8px 0 rgba(21, 21, 21, .2);
+}
+#auth-page .input-icon {
+    position: absolute;
+    top: 0;
+    left: 18px;
+    height: 48px;
+    font-size: 24px;
+    line-height: 48px;
+    text-align: left;
+    color: #ffeba7;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+}
+#auth-page .form-group input::placeholder {
+    color: #c4c3ca;
+    opacity: 0.7;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+}
+#auth-page .form-group input:focus::placeholder {
+    opacity: 0;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+}
+
+/* Button Styling (V11) */
+#auth-page .btn {
+    border-radius: 4px;
+    height: 44px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    -webkit-transition: all 200ms linear;
+    transition: all 200ms linear;
+    padding: 0 30px;
+    letter-spacing: 1px;
+    display: -webkit-inline-flex;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    -ms-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    -moz-justify-content: center;
+    -ms-justify-content: center;
+    justify-content: center;
+    -ms-flex-pack: center;
+    text-align: center;
+    border: none;
+    background-color: #ffeba7;
+    color: #102770;
+    box-shadow: 0 8px 24px 0 rgba(255, 235, 167, .2);
+    cursor: pointer; /* Memastikan tombol submit bisa diklik */
+}
+#auth-page .btn:active,
+#auth-page .btn:focus {
+    background-color: #102770;
+    color: #ffeba7;
+    box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+}
+#auth-page .btn:hover {
+    background-color: #102770;
+    color: #ffeba7;
+    box-shadow: 0 8px 24px 0 rgba(16, 39, 112, .2);
+}
+
+/* * =========================================
+ * AKHIR DARI CSS HALAMAN AUTH
+ * =========================================
+ */
+
+
+/* Submission Wizard (V18) */
+.step-link.active {
+    border-color: #063c7c; /* blue-700 */
+    color: #063c7c;
+    font-weight: 600;
+}
+.step-link.disabled {
+    color: #9ca3af; /* gray-400 */
+    cursor: not-allowed;
+}
+.step-content {
+    display: none;
+}
+.step-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
