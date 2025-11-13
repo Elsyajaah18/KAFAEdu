@@ -6,7 +6,7 @@
     <title>KAFAEdu: Journal of Education and Pedagogy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    <!-- Icon Font (Dibutuhkan oleh HTML baru) -->
+    <!-- Icon Font (Dibutuhkan oleh 3D Flip Card Auth) -->
     <link rel='stylesheet' href='https://unicons.iconscout.com/release/v2.1.9/css/unicons.css'>
     
     <!-- Firebase SDKs -->
@@ -53,10 +53,10 @@
         }
     </script>
     <!-- Chosen Palette: Academic Blue (Main Site) | Dark Flip Card (Auth Page) -->
-    <!-- Application Structure Plan: Mengganti total #auth-page dengan HTML/CSS 3D Flip Card dari user. Menyesuaikan JS agar kompatibel dengan form dan checkbox baru. -->
+    <!-- Application Structure Plan: Mengganti header lama dengan header baru yang sticky, putih, dan memiliki hamburger menu (drawer) untuk mobile, sambil mempertahankan semua fungsionalitas SPA dan Auth. -->
     <!-- Visualization & Content Choices: 
-        1. Login/Register Design: 3D Flip Card murni dari user.
-        2. JS Re-wiring: Mengubah listener navigasi untuk mengontrol checkbox. Menghubungkan form submit ke Firebase.
+        1. Header: Desain sticky putih (terinspirasi dari user), logo KAFAEdu, link nav SPA, tombol Auth, dan Hamburger Drawer.
+        2. JS: Menambahkan logika untuk hamburger drawer (toggle, overlay close).
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -70,15 +70,9 @@
         }
         
         /* General Site Styling (Navbar, Footer, Cards) */
-        .elegant-header {
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .elegant-header.scrolled {
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
+        /* CSS .elegant-header DIHAPUS karena header baru menggunakan kelas Tailwind murni */
+        
+        /* Navlink (tetap dipertahankan karena elegan) */
         .nav-link {
             @apply relative px-3 py-2 text-gray-700 transition-colors duration-300 font-medium text-base;
         }
@@ -99,14 +93,18 @@
         .soft-card {
             @apply bg-white p-6 sm:p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200;
         }
+        
+        /* CSS untuk Mobile Drawer (Baru) */
+        #mobile-drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+        #drawer-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+
 
         /* --- STYLES FOR AUTH PAGE (From User CSS) --- */
         
-        /* CATATAN: CSS dari user telah disisipkan di sini. 
-           Satu-satunya perubahan adalah mengubah 'body' menjadi '#auth-page' 
-           untuk membatasi (scope) gaya ini hanya ke halaman otentikasi.
-        */
-
         #auth-page {
             font-family: 'Poppins', sans-serif;
             font-weight: 300;
@@ -116,7 +114,7 @@
             background-color: #1f2029;
             overflow-x: hidden;
             /* Properti tambahan untuk layout */
-            min-height: calc(100vh - 8rem);
+            min-height: calc(100vh - 4rem); /* Disesuaikan dengan tinggi header baru (h-16 -> 4rem) */
             @apply flex items-center justify-center p-4;
         }
 
@@ -366,33 +364,68 @@
 
     <div class="min-h-screen flex flex-col">
         
-        <header id="main-header" class="elegant-header sticky top-0 z-20">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col md:flex-row justify-between items-center py-4">
-                    <!-- Logo and Title -->
-                    <div class="text-center md:text-left mb-4 md:mb-0">
-                        <h1 class="text-3xl font-extrabold text-blue-800">KAFAEdu</h1>
-                        <p class="text-xs text-gray-500 font-medium">Journal of Education and Pedagogy</p>
-                    </div>
-                    
-                    <!-- Navigation Links and Auth Buttons -->
-                    <nav class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
-                        <div id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4">
-                            <a href="#beranda" data-target="beranda" class="nav-link active">Beranda</a>
-                            <a href="#tentang" data-target="tentang" class="nav-link">Tentang Jurnal</a>
-                            <a href="#arsip" data-target="arsip" class="nav-link">Arsip</a>
-                            <a href="#kirim" data-target="kirim" class="nav-link">Kirim Naskah</a>
-                        </div>
-                        
-                        <!-- Auth Actions -->
-                        <div class="flex items-center space-x-2 ml-4">
-                            <a href="#login" data-target="login" id="auth-link" class="btn-primary text-sm shadow-blue-500/50">Masuk / Daftar</a>
-                            <a href="#" id="logout-btn" class="hidden text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-sm">Keluar</a>
-                        </div>
-                    </nav>
+        <!-- ===== HEADER BARU (Diadaptasi dari contoh user) ===== -->
+        <header id="main-header" class="bg-white shadow-md sticky top-0 z-40">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                
+                <!-- Logo KAFAEdu (dari header lama) -->
+                <div class="text-left">
+                    <h1 class="text-3xl font-extrabold text-blue-800">KAFAEdu</h1>
+                    <p class="text-xs text-gray-500 font-medium">Journal of Education and Pedagogy</p>
                 </div>
+
+                <!-- Hamburger (dari contoh user) -->
+                <button id="drawer-toggle" class="md:hidden text-gray-700 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Navigasi Desktop (fungsionalitas dari header lama, style dari contoh user) -->
+                <nav id="main-nav" class="hidden md:flex items-center space-x-1 lg:space-x-4 text-sm font-medium text-gray-600">
+                    <a href="#beranda" data-target="beranda" class="nav-link active">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="nav-link">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="nav-link">Arsip</a>
+                    <a href="#kirim" data-target="kirim" class="nav-link">Kirim Naskah</a>
+                    
+                    <!-- Tombol Auth (fungsionalitas dari header lama) -->
+                    <div class="flex items-center space-x-2 ml-4">
+                        <a href="#login" data-target="login" id="auth-link" class="btn-primary text-sm shadow-blue-500/50">Masuk / Daftar</a>
+                        <a href="#" id="logout-btn" class="hidden text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-sm">Keluar</a>
+                    </div>
+                </nav>
             </div>
         </header>
+
+        <!-- ===== MOBILE DRAWER (Baru) ===== -->
+        <!-- Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
+        <!-- Drawer Content -->
+        <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-72 bg-white shadow-lg z-50 transform translate-x-full">
+            <div class="p-5">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-blue-800">Menu</h2>
+                    <button id="drawer-close" class="text-gray-600 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <nav class="flex flex-col space-y-4">
+                    <a href="#beranda" data-target="beranda" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Arsip</a>
+                    <a href="#kirim" data-target="kirim" class="mobile-nav-link text-lg text-gray-700 hover:text-blue-700">Kirim Naskah</a>
+                    
+                    <div class="pt-4 border-t border-gray-200 space-y-3">
+                         <a href="#login" data-target="login" id="auth-link-mobile" class="mobile-nav-link block w-full text-center btn-primary text-base">Masuk / Daftar</a>
+                         <a href="#" id="logout-btn-mobile" class="mobile-nav-link hidden block w-full text-center text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors duration-200 text-base">Keluar</a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <!-- ===== AKHIR DARI HEADER BARU & DRAWER ===== -->
+
 
         <main class="flex-grow">
             
@@ -665,23 +698,32 @@
             const startSubmissionBtn = document.getElementById('start-submission-btn');
             const submissionStatus = document.getElementById('submission-status');
 
-            // --- Auth Flip Card Elements (Desain Baru) ---
+            // --- Auth Flip Card Elements (Desain 3D Flip) ---
             const regLogCheckbox = document.getElementById('reg-log');
             const loginMessage = document.getElementById('login-message');
             const registerMessage = document.getElementById('register-message');
-
+            
+            // --- Mobile Drawer Elements (BARU) ---
+            const drawerToggle = document.getElementById('drawer-toggle');
+            const drawerClose = document.getElementById('drawer-close');
+            const mobileDrawer = document.getElementById('mobile-drawer');
+            const drawerOverlay = document.getElementById('drawer-overlay');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+            const authLinkMobile = document.getElementById('auth-link-mobile');
+            const logoutBtnMobile = document.getElementById('logout-btn-mobile');
 
             // --- PERBAIKAN: Mengumpulkan semua tautan navigasi yang berfungsi ---
-            const allNavTargets = [...navLinks, authLink, ...document.querySelectorAll('.link')]; 
+            // Termasuk link desktop, link mobile, dan tombol auth
+            const allNavTargets = [
+                ...navLinks, 
+                ...mobileNavLinks,
+                authLink, 
+                authLinkMobile,
+                ...document.querySelectorAll('.link') // Untuk "Forgot password" jika ingin difungsikan
+            ]; 
 
-            // Scroll Animation for Navbar
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    mainHeader.classList.add('scrolled');
-                } else {
-                    mainHeader.classList.remove('scrolled');
-                }
-            });
+            // --- (DIHAPUS) Scroll Animation for Navbar ---
+            // Tidak diperlukan lagi karena header baru sticky dan shadow permanen.
 
             function updateContent(targetId) {
                 // Sembunyikan semua section
@@ -695,7 +737,7 @@
                     targetSection.classList.remove('hidden');
                 }
 
-                // Kelola status aktif untuk tautan utama (yang memiliki class .nav-link)
+                // Kelola status aktif untuk tautan utama (hanya di desktop nav)
                 navLinks.forEach(link => {
                     link.classList.remove('active');
                 });
@@ -705,11 +747,25 @@
                 }
             }
             
-            // --- (DIHAPUS) Logic for Auth Form Toggle (setAuthMode) ---
-            // Fungsi ini tidak lagi diperlukan karena CSS murni (checkbox) mengontrol tampilan.
+            // --- Logika untuk Mobile Drawer (BARU) ---
+            function openDrawer() {
+                mobileDrawer.classList.remove('translate-x-full');
+                drawerOverlay.classList.remove('hidden');
+                drawerOverlay.classList.add('opacity-100');
+            }
+            
+            function closeDrawer() {
+                mobileDrawer.classList.add('translate-x-full');
+                drawerOverlay.classList.add('hidden');
+                drawerOverlay.classList.remove('opacity-100');
+            }
+            
+            if (drawerToggle) drawerToggle.addEventListener('click', openDrawer);
+            if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+            if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
 
-            // --- PERBARUIAN: Listener untuk Checkbox Flip Card ---
-            // Saat kartu dibalik, bersihkan pesan error.
+
+            // --- Listener untuk Checkbox Flip Card ---
             if (regLogCheckbox) {
                 regLogCheckbox.addEventListener('change', () => {
                     if(loginMessage) loginMessage.textContent = '';
@@ -717,30 +773,45 @@
                 });
             }
 
-            // --- PERBARUIAN: Listener untuk semua tautan navigasi ---
+            // --- Listener untuk semua tautan navigasi ---
             allNavTargets.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    const targetId = this.dataset.target || (this.id === 'logout-btn' ? 'beranda' : null);
+                    const targetId = this.dataset.target || (this.id.startsWith('logout-btn') ? 'beranda' : null);
                     
-                    if (targetId === 'login' || targetId === 'register') {
+                    // Navigasi logout
+                    if (this.id.startsWith('logout-btn')) {
+                         e.preventDefault();
+                         handleLogout(); // Panggil fungsi logout
+                         updateContent('beranda');
+                    }
+                    // Navigasi Auth (Login/Register)
+                    else if (targetId === 'login' || targetId === 'register') {
                         e.preventDefault();
-                        // Tampilkan halaman auth
-                        updateContent('auth-page');
+                        updateContent('auth-page'); // Tampilkan halaman auth
                         
-                        // Kontrol checkbox untuk menampilkan kartu yang benar
+                        // Kontrol checkbox untuk flip
                         if (regLogCheckbox) {
                             regLogCheckbox.checked = (targetId === 'register');
                         }
                         
-                        // Bersihkan pesan error saat berganti
+                        // Bersihkan pesan error
                         if(loginMessage) loginMessage.textContent = '';
                         if(registerMessage) registerMessage.textContent = '';
                         
-                    } else if (targetId) {
+                    } 
+                    // Navigasi SPA (Internal)
+                    else if (targetId) {
                         e.preventDefault();
                         updateContent(targetId);
                     }
-                    window.scrollTo(0, 0);
+                    
+                    // Selalu tutup drawer setelah klik
+                    closeDrawer();
+                    
+                    // Jangan scroll ke atas jika targetnya adalah auth page
+                    if (targetId !== 'login' && targetId !== 'register') {
+                        window.scrollTo(0, 0);
+                    }
                 });
             });
             
@@ -753,7 +824,6 @@
             let isAuthenticated = false;
 
             const firebaseInit = async () => {
-                // Memastikan kami mengambil fungsi yang benar dari window.FirebaseServices
                 const { 
                     auth: f_auth, 
                     db: f_db, 
@@ -792,15 +862,30 @@
 
                         // Update UI based on authentication status
                         if (isAuthenticated) {
+                            // Desktop Header
                             authLink.classList.add('hidden');
                             logoutBtn.classList.remove('hidden');
                             const emailPrefix = user.email ? user.email.split('@')[0] : 'Pengguna';
                             logoutBtn.textContent = `Keluar (${emailPrefix})`;
+                            
+                            // Mobile Drawer
+                            authLinkMobile.classList.add('hidden');
+                            logoutBtnMobile.classList.remove('hidden');
+                            logoutBtnMobile.textContent = `Keluar (${emailPrefix})`;
+                            
+                            // Submission Button
                             startSubmissionBtn.disabled = false;
                             submissionStatus.classList.add('hidden');
                         } else {
+                            // Desktop Header
                             authLink.classList.remove('hidden');
                             logoutBtn.classList.add('hidden');
+                            
+                            // Mobile Drawer
+                            authLinkMobile.classList.remove('hidden');
+                            logoutBtnMobile.classList.add('hidden');
+                            
+                            // Submission Button
                             startSubmissionBtn.disabled = true;
                             submissionStatus.classList.remove('hidden');
                         }
@@ -810,10 +895,16 @@
                     } else {
                         currentUserId = null;
                         isAuthenticated = false;
+                        // Desktop
                         authLink.classList.remove('hidden');
                         logoutBtn.classList.add('hidden');
+                        // Mobile
+                        authLinkMobile.classList.remove('hidden');
+                        logoutBtnMobile.classList.add('hidden');
+                        // Submission
                         startSubmissionBtn.disabled = true;
                         submissionStatus.classList.remove('hidden');
+                        
                         loadTestimonials(); 
                     }
                 });
@@ -821,15 +912,17 @@
 
             firebaseInit();
 
-            // Handle Logout
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                try {
-                    await window.FirebaseServices.signOut(auth);
+            // Handle Logout Function (BARU)
+            async function handleLogout() {
+                 try {
+                    if (auth) {
+                        await window.FirebaseServices.signOut(auth);
+                    }
                     updateContent('beranda');
                 } catch (error) {
                 }
-            });
+            }
+            // (Listener logout lama dipindahkan ke allNavTargets)
 
             // Handle Registration Form (ID Form Disesuaikan)
             document.getElementById('register-form').addEventListener('submit', async (e) => {
