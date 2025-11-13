@@ -18,14 +18,13 @@
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.9/css/unicons.css">
 
     <!-- 
-      (PERBAIKAN V24) 
-      Menambahkan "./" agar path-nya relatif terhadap folder KAFAEdu
+      (PERBAIKAN V25) 
+      Menghapus prefix folder "css/"
     -->
-    <link rel="stylesheet" href="./css/app.css">
+    <link rel="stylesheet" href="app.css">
 
     <!-- 
       Menyediakan konfigurasi KOSONG.
-      app.js (V22) kita sudah dirancang untuk menangani ini dengan aman
     -->
     <script>
         window.KAFAEduConfig = {
@@ -36,7 +35,6 @@
     </script>
     
     <!-- 
-      (PERBAIKAN V23) 
       Muat Firebase SDK Modular secara Global di <head>.
     -->
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
@@ -58,10 +56,10 @@
     </div>
 
     <!-- 
-      (PERBAIKAN V24) 
-      Menambahkan "./" agar path-nya relatif terhadap folder KAFAEdu
+      (PERBAIKAN V25) 
+      Menghapus prefix folder "js/"
     -->
-    <script src="./js/app.js" defer></script>
+    <script src="app.js" defer></script>
 
 </body>
 </html>
