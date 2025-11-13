@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAFAEdu: Journal of Education and Pedagogy</title>
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icon Library (Unicons) -->
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.9/css/unicons.css">
+
+    <!-- CSS Kustom Anda -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
+    <!-- (PERUBAHAN) Menyediakan konfigurasi dinamis untuk app.js -->
+    <script>
+        // File app.js akan mengambil konfigurasi dari global 'window.KAFAEduConfig'
+        window.KAFAEduConfig = {
+            firebaseConfig: JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'),
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'default-app-id',
+            initialAuthToken: typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null
+        };
+    </script>
+    
+    <!-- (DIHAPUS) Blok <script type="module">...import firebase...</script> telah dipindahkan ke app.js -->
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Header / Navbar (V12) -->
+    <header class="bg-white header-shadow sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link text-2xl font-extrabold text-[#063c7c]">
+                        KAFAEdu
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex md:items-center md:space-x-8">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Arsip</a>
+                    <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link text-gray-700 hover:text-[#063c7c] transition-colors duration-200">Kirim Naskah</a>
+                    
+                    <!-- Tombol Auth Desktop -->
+                    <div id="auth-buttons-desktop" class="flex items-center space-x-2">
+                        <button id="auth-nav-button" data-target="auth-page" class="spa-nav-link hidden bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e] transition-shadow duration-200 shadow-sm">
+                            Masuk / Daftar
+                        </button>
+                        <button id="logout-button" class="hidden bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-shadow duration-200 shadow-sm">
+                            Keluar
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- Hamburger Button (Mobile) -->
+                <div class="md:hidden flex items-center">
+                    <button id="drawer-toggle" class="text-gray-700 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m4 6h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer (V12) -->
+        <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-64 bg-white shadow-xl z-50 transform drawer-closed md:hidden">
+            <div class="p-5">
+                <button id="drawer-close" class="absolute top-4 right-4 text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <nav class="flex flex-col space-y-4 mt-8">
+                    <a href="#beranda" data-target="beranda" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Beranda</a>
+                    <a href="#tentang" data-target="tentang" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Tentang Jurnal</a>
+                    <a href="#arsip" data-target="arsip" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Arsip</a>
+                    <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Kirim Naskah</a>
+                    
+                    <!-- Tombol Auth Mobile -->
+                    <div id="auth-buttons-mobile" class="pt-4 border-t">
+                        <button id="auth-nav-button-mobile" data-target="auth-page" class="spa-nav-link mobile-nav-link w-full text-left bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e]">
+                            Masuk / Daftar
+                        </button>
+                        <button id="logout-button-mobile" class="hidden w-full text-left bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 mt-2">
+                            Keluar
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten Utama (SPA) -->
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Halaman Konten (Akan ditampilkan satu per satu) -->
+
+        <!-- 1. Beranda (Landing Page - V14) -->
+        <section id="beranda" class="spa-content">
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-r from-[#063c7c] to-[#0a5a9e] text-white rounded-lg shadow-xl p-8 md:p-16 text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-extrabold mb-4">KAFAEdu: Journal of Education and Pedagogy</h2>
+                <p class="text-xl md:text-2xl font-light mb-8">Illuminating Minds through Educational Insight</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button data-target="kirim-naskah" class="spa-nav-link bg-white text-[#063c7c] font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
+                        Kirim Naskah Sekarang
+                    </button>
+                    <button data-target="arsip" class="spa-nav-link bg-transparent border-2 border-white text-white font-semibold px-6 py-3 rounded-lg hover:bg-white hover:text-[#063c7c] transition-all duration-300">
+                        Jelajahi Arsip
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fokus & Ruang Lingkup -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Fokus & Ruang Lingkup</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <!-- Item 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Basic and Primary Education</h4>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m11.13 6.06L17 11M3 5a2 2 0 012-2h1m8 0a2 2 0 012 2v8m-1 4H4a2 2 0 01-2-2V7a2 2 0 012-2h4"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Indonesian language and literature</h4>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Civic and Character Education</h4>
+                    </div>
+                    <!-- Item 4 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">History of Education and Social Studies</h4>
+                    </div>
+                    <!-- Item 5 -->
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center transform transition duration-300 hover:-translate-y-2">
+                        <svg class="w-12 h-12 mx-auto text-[#063c7c] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4 12H9m-3 0H3m0-3h6m0 0h6m6 0h-3m-3 0h-3m-3 0H3m0 0h3m0-3h3m0 0h3m0 0h3m0 0h3"></path></svg>
+                        <h4 class="font-semibold text-lg text-gray-900">Literacy and Learning Innovation</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terbitan Terkini -->
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-12">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Terbitan Terkini</h3>
+                <div class="space-y-4">
+                    <!-- Artikel 1 -->
+                    <div class="border-b pb-4">
+                        <a href="#" class="text-lg font-semibold text-[#063c7c] hover:underline">Judul Artikel Jurnal Contoh Pertama yang Menarik</a>
+                        <p class="text-sm text-gray-600 mt-1">Nama Penulis 1, Nama Penulis 2</p>
+                        <p class="text-gray-700 mt-2 text-sm leading-relaxed">Abstrak singkat... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent vel risus nec libero finibus dapibus.</p>
+                    </div>
+                    <!-- Artikel 2 -->
+                    <div class="border-b pb-4">
+                        <a href="#" class="text-lg font-semibold text-[#063c7c] hover:underline">Analisis Inovasi Pembelajaran di Era Digital</a>
+                        <p class="text-sm text-gray-600 mt-1">Nama Penulis 3</p>
+                        <p class="text-gray-700 mt-2 text-sm leading-relaxed">Abstrak singkat... Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proses Publikasi (V14) -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Proses Publikasi Kami</h3>
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <!-- Step 1 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Siapkan & Kirim Naskah</h4>
+                        <p class="text-gray-600 text-sm">Penulis menyiapkan naskah sesuai pedoman dan mengirimkannya melalui sistem kami.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:block text-gray-400 text-3xl">→</div>
+                    <!-- Step 2 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Peer Review</h4>
+                        <p class="text-gray-600 text-sm">Naskah akan ditinjau oleh mitra bestari (reviewer) secara *double-blind*.</p>
+                    </div>
+                    <!-- Arrow -->
+                    <div class="hidden md:block text-gray-400 text-3xl">→</div>
+                    <!-- Step 3 -->
+                    <div class="flex-1 text-center">
+                        <div class="bg-[#063c7c] text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                        <h4 class="font-semibold text-lg text-gray-900 mb-2">Publikasi</h4>
+                        <p class="text-gray-600 text-sm">Setelah revisi dan penerimaan, naskah akan di-*layout* dan diterbitkan secara *online*.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimoni (V7) -->
+            <div class="bg-gray-50 rounded-lg shadow-inner p-6 md:p-8 mb-12">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Apa Kata Komunitas Kami?</h3>
+                <div id="testimonials-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Testimoni akan dimuat di sini oleh JavaScript -->
+                    <div class="text-center text-gray-500">Memuat testimoni...</div>
+                </div>
+            </div>
+
+            <!-- Final CTA (V16) -->
+            <div class="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Siap Berkontribusi untuk Pendidikan?</h3>
+                <p class="text-gray-600 mb-6 max-w-lg mx-auto">Kami mengundang para peneliti, akademisi, dan praktisi untuk membagikan wawasan dan temuan Anda melalui KAFAEdu.</p>
+                <button type="button" data-target="kirim-naskah" class="spa-nav-link text-lg font-semibold px-8 py-3 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 bg-[#102770] text-[#ffeba7] hover:bg-[#ffeba7] hover:text-[#102770]">
+                    Mulai Kirim Naskah Sekarang
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. Tentang Jurnal -->
+        <section id="tentang" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Tentang Jurnal</h2>
+                
+                <div class="prose max-w-none text-gray-700">
+                    <p><strong>KAFAEdu: Journal of Education and Pedagogy</strong> adalah jurnal ilmiah yang didedikasikan untuk kemajuan pengetahuan di bidang pendidikan. Kami menyediakan platform bagi para peneliti, akademisi, dan praktisi untuk mempublikasikan temuan, inovasi, dan analisis kritis mereka.</p>
+                    <p>Email: <strong class="text-gray-900">redaksi.kafaedu@gmail.com</strong><br>
+                    Website: <strong class="text-gray-900">https://edu.kafaedu.org</strong></p>
+
+                    <h4 class="text-xl font-bold text-gray-800 mt-8 mb-4">Fokus & Ruang Lingkup</h4>
+                    <p>Jurnal ini berfokus pada publikasi artikel penelitian asli dan artikel ulasan (review) berkualitas tinggi dalam bidang-bidang berikut:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>Basic and Primary Education (Pendidikan Dasar dan Sekolah Dasar)</li>
+                        <li>Indonesian language and literature education (Pendidikan Bahasa dan Sastra Indonesia)</li>
+                        <li>Civic and Character Education (Pendidikan Pancasila, Kewarganegaraan, dan Karakter)</li>
+                        <li>History of Education and Social Studies (Pendidikan Sejarah dan Ilmu Sosial)</li>
+                        <li>Literacy and Learning Innovation (Literasi dan Inovasi Pembelajaran)</li>
+                    </ul>
+                </div>
+
+                <!-- Tim Editorial (V17) -->
+                <div class="mt-12 pt-8 border-t">
+                    <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">Tim Editorial Kami</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        
+                        <!-- Anggota Tim 1 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 1" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Dr. Nama Editor, M.Pd.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Editor-in-Chief</p>
+                            <p class="text-xs text-gray-500 mt-1">Universitas Kemerdekaan</p>
+                        </div>
+                        
+                        <!-- Anggota Tim 2 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 2" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Prof. Nama Reviewer, Ph.D.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Managing Editor</p>
+                            <p class="text-xs text-gray-500 mt-1">Institut Teknologi Pendidikan</p>
+                        </div>
+                        
+                        <!-- Anggota Tim 3 -->
+                        <div class="bg-gray-50 p-4 rounded-lg shadow-md text-center">
+                            <img src="https://placehold.co/150x150/063c7c/FFFFFF?text=Foto+Tim" 
+                                 alt="Foto Anggota Tim 3" 
+                                 class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-sm">
+                            <h4 class="text-lg font-semibold text-gray-900">Nama Anggota, S.Pd.</h4>
+                            <p class="text-sm text-[#063c7c] font-medium">Editorial Board Member</p>
+                            <p class="text-xs text-gray-500 mt-1">Praktisi Pendidikan</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Arsip -->
+        <section id="arsip" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Arsip Publikasi</h2>
+                
+                <!-- Filter / Search Bar -->
+                <div class="mb-6">
+                    <input type="text" id="search-archive" placeholder="Cari artikel berdasarkan judul atau penulis..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#063c7c]">
+                </div>
+
+                <!-- Daftar Arsip -->
+                <div id="archive-list" class="space-y-6">
+                    <!-- Item 1 -->
+                    <div class="bg-gray-50 p-5 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="text-xl font-semibold text-[#063c7c] mb-1">Volume 1, Nomor 1 (Tahun 2024)</h4>
+                        <p class="text-sm text-gray-500 mb-4">Diterbitkan: Januari 2024</p>
+                        <div class="space-y-3">
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Judul Artikel Jurnal Contoh Pertama</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 1, Nama Penulis 2 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Analisis Inovasi Pembelajaran</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 3 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="bg-gray-50 p-5 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="text-xl font-semibold text-[#063c7c] mb-1">Volume 1, Nomor 2 (Tahun 2024)</h4>
+                        <p class="text-sm text-gray-500 mb-4">Diterbitkan: Juli 2024</p>
+                        <div class="space-y-3">
+                            <div>
+                                <a href="#" class="text-lg font-medium text-gray-800 hover:text-[#063c7c] hover:underline">Studi Karakter Pendidikan Kewarganegaraan</a>
+                                <p class="text-sm text-gray-600 mt-1">Nama Penulis 4 | <span class="text-red-600 font-medium">PDF</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Kirim Naskah (Submission Wizard - V18) -->
+        <section id="kirim-naskah" class="spa-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-extrabold text-[#063c7c] mb-6">Kirim Naskah Anda</h2>
+
+                <!-- Asisten Ide Penulisan (V6) -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-[#063c7c] mb-4">✨ Asisten Ide Penulisan (Gemini)</h3>
+                    <p class="text-gray-700 mb-4">Tidak yakin apakah ide Anda sesuai? Masukkan draf judul atau topik Anda untuk mendapatkan umpan balik instan mengenai keselarasan dengan Fokus & Ruang Lingkup kami.</p>
+                    
+                    <div class="mb-4">
+                        <label for="idea-input" class="block text-sm font-medium text-gray-800 mb-2">Masukkan Ide / Draf Judul Anda:</label>
+                        <textarea id="idea-input" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#063c7c]" placeholder="Contoh: Penggunaan media interaktif untuk meningkatkan literasi di sekolah dasar..."></textarea>
+                    </div>
+                    <button id="analyze-idea-btn" class="bg-[#063c7c] text-white font-semibold px-5 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                        Periksa & Sarankan Ide
+                    </button>
+
+                    <!-- Area Hasil Gemini -->
+                    <div id="gemini-result-container" class="hidden mt-4">
+                        <div id="gemini-loading" class="text-center text-gray-600">
+                            <svg class="animate-spin h-5 w-5 text-[#063c7c] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Menganalisis...
+                        </div>
+                        <div id="gemini-error" class="hidden text-red-600 bg-red-100 border border-red-300 p-3 rounded-lg"></div>
+                        <div id="gemini-result" class="prose prose-sm max-w-none bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+                    </div>
+                </div>
+
+                <!-- Pesan Peringatan Login -->
+                <div id="login-prompt" class="hidden text-center bg-yellow-50 border border-yellow-300 text-yellow-800 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-2">Anda Harus Masuk</h3>
+                    <p class="mb-4">Silakan <button data-target="auth-page" class="spa-nav-link text-[#063c7c] font-bold underline">Masuk</button> atau <button data-target="auth-page" data-mode="register" class="spa-nav-link text-[#063c7c] font-bold underline">Daftar</button> untuk memulai proses pengiriman naskah.</p>
+                </div>
+                
+                <!-- Submission Wizard (Hanya tampil jika sudah login) -->
+                <div id="submission-wizard" class="hidden">
+                    <!-- Stepper -->
+                    <nav class="flex border-b border-gray-200 mb-8">
+                        <button data-step="1" class="step-link active flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 1:</span> Pedoman
+                        </button>
+                        <button data-step="2" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 2:</span> Info Penulis
+                        </button>
+                        <button data-step="3" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 3:</span> Info Naskah
+                        </button>
+                        <button data-step="4" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 4:</span> Unggah File
+                        </button>
+                        <button data-step="5" class="step-link disabled flex-1 py-4 px-2 text-center text-sm font-medium border-b-2 border-transparent">
+                            <span class="hidden md:inline">Langkah 5:</span> Konfirmasi
+                        </button>
+                    </nav>
+
+                    <!-- Konten Step -->
+                    <div id="step-content-container">
+                        <!-- Step 1: Pedoman -->
+                        <div id="step-1" class="step-content active">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Pedoman Penulisan</h4>
+                            <div class="prose max-w-none text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200 h-64 overflow-y-auto">
+                                <p>Pastikan naskah Anda memenuhi kriteria berikut:</p>
+                                <ul>
+                                    <li>Naskah asli, belum pernah dipublikasikan di tempat lain.</li>
+                                    <li>Format file dalam bentuk Microsoft Word (.doc atau .docx).</li>
+                                    <li>Ditulis sesuai dengan templat KAFAEdu (unduh <a href="#" class="text-blue-600 underline">di sini</a>).</li>
+                                    <li>Menggunakan sitasi gaya APA Edisi ke-7.</li>
+                                    <li>Panjang artikel antara 4000-7000 kata.</li>
+                                    <li>Abstrak (Bahasa Indonesia & Inggris) masing-masing 150-250 kata.</li>
+                                </ul>
+                                <p>Dengan melanjutkan, Anda menyetujui semua pedoman dan etika publikasi yang berlaku di KAFAEdu.</p>
+                            </div>
+                            <div class="mt-4">
+                                <input type="checkbox" id="agree-guidelines" class="mr-2">
+                                <label for="agree-guidelines" class="text-gray-700">Saya telah membaca dan menyetujui semua pedoman penulisan.</label>
+                            </div>
+                            <div class="text-right mt-6">
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Info Penulis -->
+                        <div id="step-2" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Informasi Penulis (Korespondensi)</h4>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="author-name" class="block text-sm font-medium text-gray-700">Nama Lengkap (dengan gelar)</label>
+                                        <input type="text" id="author-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                    </div>
+                                    <div>
+                                        <label for="author-email" class="block text-sm font-medium text-gray-700">Email</label>
+                                        <input type="email" id="author-email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="author-affiliation" class="block text-sm font-medium text-gray-700">Afiliasi / Institusi</label>
+                                    <input type="text" id="author-affiliation" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                                <div>
+                                    <label for="co-authors" class="block text-sm font-medium text-gray-700">Penulis Pendamping (jika ada, pisahkan dengan koma)</label>
+                                    <input type="text" id="co-authors" placeholder="Contoh: Dr. Budi, M.Pd., Prof. Citra, Ph.D." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Info Naskah -->
+                        <div id="step-3" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Informasi Naskah</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="manuscript-title" class="block text-sm font-medium text-gray-700">Judul Naskah</label>
+                                    <input type="text" id="manuscript-title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                                <div>
+                                    <label for="manuscript-abstract" class="block text-sm font-medium text-gray-700">Abstrak (Bahasa Indonesia)</label>
+                                    <textarea id="manuscript-abstract" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]"></textarea>
+                                </div>
+                                <div>
+                                    <label for="manuscript-keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
+                                    <input type="text" id="manuscript-keywords" placeholder="Contoh: literasi, inovasi, sekolah dasar" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#063c7c] focus:border-[#063c7c]">
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Unggah File -->
+                        <div id="step-4" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Unggah File Naskah</h4>
+                            <p class="text-sm text-gray-600 mb-4">Unggah file naskah lengkap Anda dalam format .doc atau .docx. Pastikan file telah dianonimkan (tidak ada nama penulis) untuk proses *double-blind review*.</p>
+                            
+                            <div id="drop-zone" class="flex justify-center items-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                <div class="text-gray-500">
+                                    <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h10a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 16v1a2 2 0 01-2 2H6a2 2 0 01-2-2v-1m16-4l-4-4-4 4m0 0v12"></path></svg>
+                                    <p class="font-semibold">Seret & Lepas file di sini</p>
+                                    <p class="text-sm">atau klik untuk memilih file</p>
+                                    <p class="text-xs mt-2">(Hanya .doc, .docx)</p>
+                                </div>
+                                <input type="file" id="file-upload" class="hidden" accept=".doc,.docx">
+                            </div>
+                            <div id="file-upload-info" class="hidden mt-4 text-center text-green-700 font-medium"></div>
+
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button class="wizard-next bg-[#063c7c] text-white font-semibold px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Konfirmasi -->
+                        <div id="step-5" class="step-content">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Pengiriman</h4>
+                            <p class="text-gray-700 mb-6">Harap tinjau kembali semua informasi yang telah Anda masukkan sebelum mengirimkan naskah.</p>
+                            
+                            <!-- Ringkasan (Opsional, bisa diisi JS) -->
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-2">
+                                <p class="text-sm text-gray-600"><strong>Judul:</strong> <span id="summary-title" class="text-gray-800">...</span></p>
+                                <p class="text-sm text-gray-600"><strong>Penulis:</strong> <span id="summary-author" class="text-gray-800">...</span></p>
+                                <p class="text-sm text-gray-600"><strong>File:</strong> <span id="summary-file" class="text-gray-800">...</span></p>
+                            </div>
+
+                            <div class="mt-4">
+                                <input type="checkbox" id="agree-final" class="mr-2">
+                                <label for="agree-final" class="text-gray-700">Saya menyatakan bahwa naskah ini adalah karya asli saya dan tidak sedang dalam pertimbangan di jurnal lain.</label>
+                            </div>
+
+                            <div class="flex justify-between mt-6">
+                                <button class="wizard-prev bg-gray-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                                    ← Sebelumnya
+                                </button>
+                                <button id="submit-manuscript" class="bg-green-600 text-white font-bold px-8 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                    KIRIM NASKAH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 5. Halaman Auth (Login/Register 3D Flip - V11) -->
+        <!-- Bagian ini sengaja ditempatkan di luar container utama untuk tampilan full-height -->
+        <section id="auth-page" class="spa-content hidden">
+            <!-- HTML dari V11 (3D Flip Card) -->
+            <div class="section full-height">
+                <div class="container">
+                    <div class="row full-height justify-content-center">
+                        <div class="col-12 text-center align-self-center py-5">
+                            <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                                <!-- Tombol kembali ke Beranda -->
+                                <button data-target="beranda" class="spa-nav-link text-white font-semibold mb-4 hover:text-yellow-300 transition-colors duration-200">
+                                    ← Kembali ke Beranda
+                                </button>
+
+                                <h6 class="mb-0 pb-3"><span>Log In </span><span>Sign Up</span></h6>
+                                <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
+                                <label for="reg-log"></label>
+                                <div class="card-3d-wrap mx-auto">
+                                    <div class="card-3d-wrapper">
+                                        <!-- Card Depan (Login) -->
+                                        <div class="card-front">
+                                            <div class="center-wrap">
+                                                <form id="login-form" class="section text-center">
+                                                    <h4 class="mb-4 pb-3">Log In</h4>
+                                                    <div class="form-group">
+                                                        <input type="email" name="logemail" class="form-style" placeholder="Your Email" id="login-email" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-at"></i>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <input type="password" name="logpass" class="form-style" placeholder="Your Password" id="login-password" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-lock-alt"></i>
+                                                    </div>
+                                                    <button type="submit" class="btn mt-4">submit</button>
+                                                    <p class="mb-0 mt-4 text-center"><a href="#0" class="link">Forgot your password?</a></p>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!-- Card Belakang (Register) -->
+                                        <div class="card-back">
+                                            <div class="center-wrap">
+                                                <form id="register-form" class="section text-center">
+                                                    <h4 class="mb-4 pb-3">Sign Up</h4>
+                                                    <div class="form-group">
+                                                        <input type="text" name="logname" class="form-style" placeholder="Your Full Name" id="register-name" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-user"></i>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <input type="email" name="logemail" class="form-style" placeholder="Your Email" id="register-email" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-at"></i>
+                                                    </div>
+                                                    <div class="form-group mt-2">
+                                                        <input type="password" name="logpass" class="form-style" placeholder="Your Password" id="register-password" autocomplete="off" required>
+                                                        <i class="input-icon uil uil-lock-alt"></i>
+                                                    </div>
+                                                    <button type="submit" class="btn mt-4">submit</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#063c7c] text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <p>&copy; 2024 KAFAEdu: Journal of Education and Pedagogy. All rights reserved.</p>
+            <p class="text-sm text-blue-200 mt-1">Email: redaksi.kafaedu@gmail.com</p>
+        </div>
+    </footer>
+
+    <!-- Modal Notifikasi -->
+    <div id="notification-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close" class="bg-[#063c7c] text-white px-6 py-2 rounded-lg hover:bg-[#052e5e] transition-colors duration-200">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- (PERUBAHAN) JavaScript Aplikasi Utama dimuat sebagai modul -->
+    <script type="module" src="{{ asset('js/app.js') }}" defer></script>
+
+</body>
+</html>
