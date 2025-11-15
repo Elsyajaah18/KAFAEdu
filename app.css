@@ -9,15 +9,9 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Mobile Drawer (V12) */
-.drawer-closed {
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-}
-.drawer-open {
-    transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
-}
+/* (PERBAIKAN V33) Hapus style .drawer-open/.drawer-closed */
+/* Properti ini sekarang ditangani oleh kelas Tailwind di index.html */
+
 
 /* * =========================================
  * CSS HALAMAN AUTH (LOGIN/REGISTER 3D FLIP)
