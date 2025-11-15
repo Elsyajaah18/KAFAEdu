@@ -1,34 +1,14 @@
-// (PERBAIKAN V29)
+// (PERBAIKAN V34)
 // TIDAK ADA 'import' di sini.
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM telah dimuat. Memulai eksekusi app.js (V29)...");
+    console.log("DOM telah dimuat. Memulai eksekusi app.js (V34)...");
 
-    // (PERBAIKAN V29)
-    // Definisikan fungsi Firebase dari 'window' object dengan BENAR
-    const initializeApp = window.firebase?.app?.initializeApp;
-    const { 
-        getAuth, 
-        signInAnonymously, 
-        signInWithCustomToken, 
-        onAuthStateChanged,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        signOut
-    } = window.firebase?.auth || {}; // Gunakan object kosong jika 'firebaseAuth' tidak ada
-    const { 
-        getFirestore, 
-        doc, 
-        getDoc, 
-        setDoc, 
-        onSnapshot, 
-        collection, 
-        query, 
-        getDocs,
-        addDoc,
-        setLogLevel
-    } = window.firebase?.firestore || {}; // Gunakan object kosong jika 'firebaseFirestore' tidak ada
-
+    // (PERBAIKAN V34)
+    // Definisikan fungsi Firebase dari 'window' object (Compat/Namespaced)
+    // Ini adalah cara yang benar untuk menggunakan skrip -compat.js
+    const firebase = window.firebase;
+    let db, auth; // Akan diinisialisasi di dalam try-catch
 
     // === Variabel State Global ===
     let currentUserId = null;
@@ -39,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Mencari elemen UI...");
     const contentPages = document.querySelectorAll('.spa-content');
     const allNavTargets = document.querySelectorAll('.spa-nav-link');
-    const mainNavLinks = document.querySelectorAll('header nav a.spa-nav-link, #mobile-drawer a.spa-nav-link');
+    const mainNavLinks = document.querySelectorAll('header nav a.spa-nav-link, #drawer a.spa-nav-link'); // (PERBAIKAN V33) Menggunakan #drawer
     
     // Auth
     const authNavButton = document.getElementById('auth-nav-button');
@@ -50,10 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     const authCheckbox = document.getElementById('reg-log');
 
-    // Mobile Drawer (V12)
+    // (PERBAIKAN V33) Mobile Drawer
     const drawerToggle = document.getElementById('drawer-toggle');
     const drawerClose = document.getElementById('drawer-close');
-    const mobileDrawer = document.getElementById('mobile-drawer');
+    const mobileDrawer = document.getElementById('drawer'); // (PERBAIKAN V33) Menggunakan ID 'drawer'
 
     // Notifikasi
     const notificationModal = document.getElementById('notification-modal');
@@ -110,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateContent(targetId, mode = 'login') {
         // Cek hash untuk navigasi awal
+        if (!targetId) {
+            targetId = window.location.hash || '#beranda';
+        }
         if (targetId.startsWith('#')) {
             targetId = targetId.substring(1);
         }
@@ -141,18 +124,20 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.hash = targetId;
 
         mainNavLinks.forEach(link => {
+            // Hapus 'active' style (misal: text-gray-800)
+            link.classList.remove('text-gray-800');
+            link.classList.add('text-[#063c7c]');
+
             if (link.dataset.target === targetId) {
-                link.classList.add('text-[#063c7c]', 'font-bold');
-                link.classList.remove('text-gray-700');
-            } else {
-                link.classList.remove('text-[#063c7c]', 'font-bold');
-                link.classList.add('text-gray-700');
+                // (PERBAIKAN V33) Sesuaikan dengan style baru Anda
+                link.classList.add('text-gray-800'); // Style 'active' baru
+                link.classList.remove('text-[#063c7c]');
             }
         });
 
+        // (PERBAIKAN V33) Gunakan class Tailwind untuk menutup drawer
         if(mobileDrawer) {
-            mobileDrawer.classList.add('drawer-closed');
-            mobileDrawer.classList.remove('drawer-open');
+            mobileDrawer.classList.add('-translate-x-full');
         }
 
         // Scroll ke atas (hanya jika bukan navigasi hash awal)
@@ -160,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo(0, 0);
         }
         
-
         if (targetId === 'kirim-naskah') {
             if (submissionWizard && loginPrompt) {
                 if (currentUserId) { 
@@ -186,21 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // (PERBAIKAN V33) Logika Buka/Tutup Drawer baru
     if(drawerToggle) {
         drawerToggle.addEventListener('click', () => {
-            mobileDrawer.classList.remove('drawer-closed');
-            mobileDrawer.classList.add('drawer-open');
+            mobileDrawer.classList.remove('-translate-x-full');
         });
     }
     if(drawerClose) {
         drawerClose.addEventListener('click', () => {
-            mobileDrawer.classList.add('drawer-closed');
-            mobileDrawer.classList.remove('drawer-open');
+            mobileDrawer.classList.add('-translate-x-full');
         });
     }
 
     // === 4. TAMPILKAN HALAMAN AWAL ===
-    // (PERBAIKAN V26) Baca hash dari URL saat pertama kali load
     const initialHash = window.location.hash || '#beranda';
     updateContent(initialHash);
     console.log(`Navigasi SPA dan UI dasar telah dipasang. Halaman awal: ${initialHash}`);
@@ -210,9 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeFirebaseAndAuth() {
         console.log("Mencoba inisialisasi Firebase...");
         try {
-            // (PERBAIKAN V29) Cek apakah SDK-nya berhasil dimuat DAN fungsi intinya ada
-            if (!initializeApp || !getAuth || !getFirestore) {
-                throw new Error("Firebase SDK gagal dimuat dari CDN. Periksa koneksi internet atau adblocker.");
+            // (PERBAIKAN V34) Cek apakah 'window.firebase' ada
+            if (!firebase || !firebase.initializeApp) {
+                throw new Error("Firebase SDK (compat) gagal dimuat dari CDN. Periksa skrip di index.html.");
             }
 
             const { firebaseConfig, appId, initialAuthToken } = window.KAFAEduConfig;
@@ -221,15 +203,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Konfigurasi Firebase (apiKey, dll) tidak ditemukan. Masuk ke 'Mode Offline'.");
             }
 
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            setLogLevel('Debug');
+            // (PERBAIKAN V34) Gunakan sintaks 'compat' V8
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            // firebase.firestore().setLogLevel('Debug'); // setLogLevel tidak ada di v8
 
             console.log("Firebase berhasil diinisialisasi.");
 
             // Auth State
-            onAuthStateChanged(auth, (user) => {
+            auth.onAuthStateChanged((user) => {
                 if (user && !user.isAnonymous) {
                     console.log("Status Auth: Masuk sebagai", user.email);
                     currentUserId = user.uid; 
@@ -253,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Handler Logout
             function handleLogout() {
-                signOut(auth).then(() => {
+                auth.signOut().then(() => {
                     showNotification('Logout Berhasil', 'Anda telah berhasil keluar.');
                     updateContent('beranda');
                 }).catch((error) => {
@@ -269,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     const email = document.getElementById('login-email').value;
                     const password = document.getElementById('login-password').value;
-                    signInWithEmailAndPassword(auth, email, password)
+                    auth.signInWithEmailAndPassword(email, password)
                         .then(() => {
                             showNotification('Login Berhasil', `Selamat datang kembali!`);
                             updateContent('beranda');
@@ -284,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     const email = document.getElementById('register-email').value;
                     const password = document.getElementById('register-password').value;
-                    createUserWithEmailAndPassword(auth, email, password)
+                    auth.createUserWithEmailAndPassword(email, password)
                         .then(() => {
                             showNotification('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat.');
                             updateContent('beranda');
@@ -301,9 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Sign in
             if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
+                await auth.signInWithCustomToken(initialAuthToken);
             } else {
-                await signInAnonymously(auth);
+                await auth.signInAnonymously();
             }
 
         } catch (error) {
@@ -427,23 +410,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fungsi-fungsi yang bergantung pada Firebase/Gemini
     
     async function initTestimonials(db, appId) {
-        if (!testimonialsContainer || !collection) return;
-        const testimonialsRef = collection(db, `artifacts/${appId}/public/data/testimonials`);
+        if (!testimonialsContainer || !db) return; // (PERBAIKAN V33) Cek db juga
+        const testimonialsRef = db.collection(`artifacts/${appId}/public/data/testimonials`);
         try {
-            const snapshot = await getDocs(testimonialsRef);
+            const snapshot = await testimonialsRef.get();
             if (snapshot.empty) {
                 const mockTestimonials = [
                     { id: "fBPskr5adZOhPDP1f8IT", name: "Dr. Budi", role: "Peneliti", quote: "Proses review di KAFAEdu sangat cepat dan konstruktif. Sangat direkomendasikan!" },
                     { id: "XRm6R88YNZUuLNdccfq5", name: "Prof. Citra", role: "Dosen", quote: "Jurnal ini menjadi acuan penting dalam bidang pedagogi di Indonesia." },
                 ];
                 for (const testimonial of mockTestimonials) {
-                    const docRef = doc(db, `artifacts/${appId}/public/data/testimonials`, testimonial.id);
-                    await setDoc(docRef, { name: testimonial.name, role: testimonial.role, quote: testimonial.quote });
+                    const docRef = db.collection(`artifacts/${appId}/public/data/testimonials`).doc(testimonial.id);
+                    await docRef.set({ name: testimonial.name, role: testimonial.role, quote: testimonial.quote });
                 }
             }
         } catch (error) { console.error("Gagal init testimoni:", error); }
 
-        onSnapshot(testimonialsRef, (snapshot) => {
+        testimonialsRef.onSnapshot((snapshot) => {
             if (snapshot.empty) {
                 testimonialsContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Belum ada testimoni.</p>';
                 return;
