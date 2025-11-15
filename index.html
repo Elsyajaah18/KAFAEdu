@@ -30,14 +30,13 @@
     </script>
     
     <!-- 
-      (PERBAIKAN V32) 
-      Memuat skrip Firebase MODULAR (v9+) yang BENAR.
-      Ini akan membuat 'window.firebase.app', 'window.firebase.auth', dll.
-      tersedia untuk app.js.
+      (PERBAIKAN V31) 
+      Memuat skrip Firebase COMPAT (Namespaced) yang benar.
+      Ini akan membuat 'window.firebase' tersedia untuk app.js
     -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
 
 </head>
 
@@ -52,15 +51,6 @@
                     <a href="#beranda" data-target="beranda" class="spa-nav-link text-2xl font-extrabold text-[#063c7c]">
                         KAFAEdu
                     </a>
-                </div>
-
-                <!-- Hamburger Button (Mobile) -->
-                <div class="md:hidden flex items-center">
-                    <button id="drawer-toggle" class="text-gray-700 focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m4 6h16"></path>
-                        </svg>
-                    </button>
                 </div>
 
                 <!-- Desktop Navigation -->
@@ -81,35 +71,45 @@
                     </div>
                 </nav>
 
+                <!-- Hamburger Button (Mobile) -->
+                <div class="md:hidden flex items-center">
+                    <button id="drawer-toggle" class="text-gray-700 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m4 6h16"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Mobile Drawer (V12) -->
-        <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-64 bg-white shadow-xl z-50 transform drawer-closed md:hidden">
-            <div class="p-5">
-                <button id="drawer-close" class="absolute top-4 right-4 text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <!-- (PERBAIKAN V33) Mobile Drawer Menu (Updated) -->
+        <aside id="drawer" class="fixed top-0 left-0 w-64 h-full bg-white z-50 shadow transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h2 class="text-lg font-bold text-[#063c7c]">Menu</h2>
+                <button id="drawer-close" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <nav class="flex flex-col space-y-4 mt-8">
-                    <a href="#beranda" data-target="beranda" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Beranda</a>
-                    <a href="#tentang" data-target="tentang" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Tentang Jurnal</a>
-                    <a href="#arsip" data-target="arsip" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Arsip</a>
-                    <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link mobile-nav-link text-gray-700 hover:text-[#063c7c]">Kirim Naskah</a>
-                    
-                    <!-- Tombol Auth Mobile -->
-                    <div id="auth-buttons-mobile" class="pt-4 border-t">
-                        <button id="auth-nav-button-mobile" data-target="auth-page" class="spa-nav-link mobile-nav-link w-full text-left bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e]">
-                            Masuk / Daftar
-                        </button>
-                        <button id="logout-button-mobile" class="hidden w-full text-left bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 mt-2">
-                            Keluar
-                        </button>
-                    </div>
-                </nav>
             </div>
-        </div>
+            <!-- Navigasi SPA Fungsional kita dimasukkan ke desain baru -->
+            <nav class="flex flex-col space-y-4 px-6 py-4 text-[#063c7c] font-medium">
+                <a href="#beranda" data-target="beranda" class="spa-nav-link mobile-nav-link hover:text-gray-800 transition-colors">Beranda</a>
+                <a href="#tentang" data-target="tentang" class="spa-nav-link mobile-nav-link hover:text-gray-800 transition-colors">Tentang Jurnal</a>
+                <a href="#arsip" data-target="arsip" class="spa-nav-link mobile-nav-link hover:text-gray-800 transition-colors">Arsip</a>
+                <a href="#kirim-naskah" data-target="kirim-naskah" class="spa-nav-link mobile-nav-link hover:text-gray-800 transition-colors">Kirim Naskah</a>
+                
+                <!-- Tombol Auth Mobile Fungsional kita -->
+                <div id="auth-buttons-mobile" class="pt-4 border-t">
+                    <button id="auth-nav-button-mobile" data-target="auth-page" class="spa-nav-link mobile-nav-link w-full text-center bg-[#063c7c] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#052e5e]">
+                        Masuk / Daftar
+                    </button>
+                    <button id="logout-button-mobile" class="hidden w-full text-center bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 mt-2">
+                        Keluar
+                    </button>
+                </div>
+            </nav>
+        </aside>
     </header>
 
     <!-- Konten Utama (SPA) -->
